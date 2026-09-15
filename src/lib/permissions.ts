@@ -95,12 +95,12 @@ export class PermissionService {
 
   /**
    * canRequestRevision:
-   * Staff Pusat, authorized branch, status must be SUBMITTED.
+   * Staff Pusat, authorized branch, status must not be VERIFIED (VERIFIED is immutable).
    */
   static canRequestRevision(user: AuthUser, closing: ClosingResource): boolean {
     if (user.role !== Role.STAFF_PUSAT) return false;
     if (!this.canAccessBranch(user, closing.branchId)) return false;
-    return closing.status === ClosingStatus.SUBMITTED;
+    return closing.status !== ClosingStatus.VERIFIED;
   }
 
   /**

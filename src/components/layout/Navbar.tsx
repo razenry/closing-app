@@ -6,6 +6,7 @@ import { Role } from "@prisma/client";
 import { logoutAction } from "@/actions/auth";
 import { UserCircle2, LogOut, KeyRound } from "lucide-react";
 import { ChangePasswordModal } from "@/components/auth/ChangePasswordModal";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 interface NavbarProps {
   user: AuthUser;
@@ -40,6 +41,9 @@ export function Navbar({ user }: NavbarProps) {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {/* Notification Bell */}
+          <NotificationBell />
+
           {/* User Scope & Role Indicator */}
           <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-200 text-xs">
             <UserCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />

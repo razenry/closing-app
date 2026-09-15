@@ -15,12 +15,13 @@ export default async function DashboardPage() {
   const todayStr = "2026-09-15"; // Today's date aligned with simulation metadata
 
   if (user.role === Role.STAFF_PUSAT) {
-    const { stats, needAttention } = await ClosingService.getDashboardForStaffPusat(user);
+    const { stats, needAttention, recentClosings } = await ClosingService.getDashboardForStaffPusat(user);
     return (
       <StaffPusatDashboard
         user={user}
         stats={stats}
         needAttention={needAttention}
+        recentClosings={recentClosings}
       />
     );
   }

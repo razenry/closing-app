@@ -221,14 +221,19 @@ export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
               </button>
             )}
 
-            {/* Staff Pusat: Request Revision */}
-            {isStaffPusat && closing.status === ClosingStatus.SUBMITTED && (
+            {/* Staff Pusat: Request / Assign Revision */}
+            {isStaffPusat && closing.status !== ClosingStatus.VERIFIED && (
               <button
                 onClick={() => setIsRevisionOpen(true)}
                 className="px-3.5 py-2 text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Tugaskan atau minta revisi dokumen closing kepada cabang"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
-                <span>Minta Revisi</span>
+                <span>
+                  {closing.status === ClosingStatus.REVISION_REQUIRED
+                    ? "Tambah Catatan Revisi"
+                    : "Minta / Tugaskan Revisi"}
+                </span>
               </button>
             )}
 

@@ -1,6 +1,7 @@
 import { ClosingRepository } from "./closing.repository";
 import { ChecklistService } from "../checklist/checklist.service";
 import { ActivityService } from "../activity/activity.service";
+import { NotificationService } from "../notification/notification.service";
 import { AuthUser, PermissionService } from "@/lib/permissions";
 import { ClosingStatus, ActivityAction } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
@@ -97,6 +98,14 @@ export class ClosingService {
       metadata: { completeness: report.percentage },
     });
 
+    // Notify Pusat staff that a closing has been submitted
+    await NotificationService.notifyPusatStaff({
+      title: `Dokumen Closing Masuk: ${closing.branch.name}`,
+      message: `${user.name} (Staff Cabang) menyerahkan closing tanggal ${closing.closingDate.toLocaleDateString("id-ID")} untuk diverifikasi.`,
+      link: `/closings/${closingId}`,
+      branchId: closing.branchId,
+    });
+
     return updated;
   }
 
@@ -132,6 +141,13 @@ export class ClosingService {
       action: ActivityAction.VERIFY_CLOSING,
       description: `Kantor Pusat memverifikasi closing cabang ${closing.branch.name}`,
       metadata: { verifiedById: user.id },
+    });
+
+    // Notify branch staff that closing has been approved and verified
+    await NotificationService.notifyBranchStaff(closing.branchId, {
+      title: `Closing Terverifikasi: ${closing.branch.name}`,
+      message: `Dokumentasi closing tanggal ${closing.closingDate.toLocaleDateString("id-ID")} telah diverifikasi & disetujui resmi oleh ${user.name} (Kantor Pusat).`,
+      link: `/closings/${closingId}`,
     });
 
     return verified;
@@ -232,14 +248,19 @@ export class ClosingService {
       };
     }
 
-    const [stats, needAttention] = await Promise.all([
+    const [stats, needAttention, { items: recentClosings }] = await Promise.all([
       ClosingRepository.getStats(authorizedBranches),
       ClosingRepository.listNeedAttention(authorizedBranches),
+      ClosingRepository.listFiltered({
+        branchIds: authorizedBranches,
+        take: 10,
+      }),
     ]);
 
     return {
       stats,
       needAttention,
+      recentClosings,
     };
   }
 }

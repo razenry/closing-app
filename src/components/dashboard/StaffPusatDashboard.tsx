@@ -25,12 +25,14 @@ interface StaffPusatDashboardProps {
     averageCompleteness: number;
   };
   needAttention: any[];
+  recentClosings?: any[];
 }
 
 export function StaffPusatDashboard({
   user,
   stats,
   needAttention,
+  recentClosings = [],
 }: StaffPusatDashboardProps) {
   const statCards = [
     {
@@ -172,6 +174,86 @@ export function StaffPusatDashboard({
                         }`}
                       >
                         {item.status === "SUBMITTED" ? "Review & Verifikasi" : "Lihat Revisi"}
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 3. All Recent Branch Closings (Overview & Revision Assignment) */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">
+              Dokumentasi Closing Cabang Terkini
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Pantau seluruh aktivitas closing harian cabang. Anda dapat membuka closing kapan saja untuk memeriksa atau <strong>menugaskan revisi</strong>.
+            </p>
+          </div>
+          <Link
+            href="/closings"
+            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+          >
+            <span>Cari & Filter Lengkap</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {recentClosings.length === 0 ? (
+          <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-100">
+            <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <div className="text-sm font-semibold text-slate-700">Belum Ada Riwayat Closing</div>
+            <div className="text-xs text-slate-400">Cabang belum membuat dokumentasi closing.</div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px] bg-slate-50">
+                  <th className="py-2.5 px-3">Cabang</th>
+                  <th className="py-2.5 px-3">Tanggal Closing</th>
+                  <th className="py-2.5 px-3">Dibuat Oleh</th>
+                  <th className="py-2.5 px-3">Kelengkapan</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3 text-right">Aksi Pusat</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {recentClosings.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3 px-3 font-semibold text-slate-900">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{item.branch.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3 font-medium text-slate-700">
+                      {formatDate(item.closingDate)}
+                    </td>
+                    <td className="py-3 px-3 text-slate-600">
+                      {item.createdBy.name}
+                    </td>
+                    <td className="py-3 px-3 w-36">
+                      <ProgressBar percentage={item.completenessPercentage} showText={false} />
+                      <span className="text-[10px] text-slate-500 font-semibold mt-0.5 inline-block">
+                        {item.completenessPercentage}% (11 Item)
+                      </span>
+                    </td>
+                    <td className="py-3 px-3">
+                      <StatusBadge status={item.status} />
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <Link
+                        href={`/closings/${item.id}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-xs transition-colors"
+                      >
+                        <span>Buka & Tindakan</span>
                         <ArrowRight className="w-3 h-3" />
                       </Link>
                     </td>
