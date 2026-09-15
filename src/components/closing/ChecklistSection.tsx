@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
-import { AuthUser } from "@/lib/permissions";
-import { ClosingWithRelations } from "@/modules/closing/closing.types";
-import { GRAMMASI_LIST } from "@/modules/checklist/checklist.validation";
-import { StockStatus, FileCategory, Role, ClosingStatus } from "@prisma/client";
 import { updateStockStatusAction } from "@/actions/closing";
 import { deleteFileAction } from "@/actions/file";
-import { UploadModal } from "./UploadModal";
 import { ImagePreviewModal } from "@/components/ui/ImagePreviewModal";
-import { CheckCircle2, AlertCircle, Image as ImageIcon, Download, Trash2, Upload, ZoomIn } from "lucide-react";
+import { AuthUser } from "@/lib/permissions";
 import { formatFileSize } from "@/lib/utils";
+import { GRAMMASI_LIST } from "@/modules/checklist/checklist.validation";
+import { ClosingWithRelations } from "@/modules/closing/closing.types";
+import { ClosingStatus, FileCategory, Role, StockStatus } from "@prisma/client";
+import { AlertCircle, CheckCircle2, Download, Trash2, Upload, ZoomIn } from "lucide-react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { UploadModal } from "./UploadModal";
 
 interface ChecklistSectionProps {
   closing: ClosingWithRelations;
@@ -79,7 +79,7 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
       },
       cancel: {
         label: "Batal",
-        onClick: () => {},
+        onClick: () => { },
       },
     });
   };
@@ -142,11 +142,10 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                           type="button"
                           onClick={() => handleSetStatus(gramasi, StockStatus.HAS_STOCK)}
                           disabled={isPending}
-                          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                            stockStatus === StockStatus.HAS_STOCK
-                              ? "bg-amber-500 text-slate-900 shadow-xs"
-                              : "text-slate-600 hover:text-slate-900"
-                          }`}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${stockStatus === StockStatus.HAS_STOCK
+                            ? "bg-amber-500 text-slate-900 shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
+                            }`}
                         >
                           HAS STOCK
                         </button>
@@ -154,30 +153,28 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                           type="button"
                           onClick={() => handleSetStatus(gramasi, StockStatus.NO_STOCK)}
                           disabled={isPending}
-                          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                            stockStatus === StockStatus.NO_STOCK
-                              ? "bg-slate-700 text-white shadow-xs"
-                              : "text-slate-600 hover:text-slate-900"
-                          }`}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${stockStatus === StockStatus.NO_STOCK
+                            ? "bg-slate-700 text-white shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
+                            }`}
                         >
                           NO STOCK
                         </button>
                       </div>
                     ) : (
                       <span
-                        className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold ${
-                          stockStatus === StockStatus.HAS_STOCK
-                            ? "bg-amber-100 text-amber-800"
-                            : stockStatus === StockStatus.NO_STOCK
+                        className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold ${stockStatus === StockStatus.HAS_STOCK
+                          ? "bg-amber-100 text-amber-800"
+                          : stockStatus === StockStatus.NO_STOCK
                             ? "bg-slate-200 text-slate-700"
                             : "bg-slate-100 text-slate-400"
-                        }`}
+                          }`}
                       >
                         {stockStatus === StockStatus.HAS_STOCK
                           ? "HAS STOCK"
                           : stockStatus === StockStatus.NO_STOCK
-                          ? "NO STOCK"
-                          : "BELUM DIATUR"}
+                            ? "NO STOCK"
+                            : "BELUM DIATUR"}
                       </span>
                     )}
                   </td>
@@ -309,10 +306,7 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
         onClose={() => setIsUploadOpen(false)}
         defaultCategory={FileCategory.STOCK_PHOTO}
         defaultGramasi={selectedGramasi}
-        lockCategory={true}
-        lockGramasi={true}
       />
-
 
       {/* Image Preview Lightbox Modal */}
       <ImagePreviewModal

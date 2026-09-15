@@ -240,8 +240,14 @@ export class UnifiedStorageService implements IStorageService {
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       return new VercelBlobStorageService(process.env.BLOB_READ_WRITE_TOKEN);
     }
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "Variabel BLOB_READ_WRITE_TOKEN belum terbaca di Vercel. Pastikan telah menambahkan token di Vercel Dashboard -> Settings -> Environment Variables, lalu lakukan Redeploy."
+      );
+    }
     return new LocalStorageService();
   }
+
 
   async upload(input: UploadInput): Promise<UploadResult> {
     return this.getActiveService().upload(input);

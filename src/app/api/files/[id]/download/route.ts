@@ -28,6 +28,12 @@ export async function GET(
     const download = await FileService.downloadFile(id, user, hasShareAccess);
 
     const inline = req.nextUrl.searchParams.get("inline") === "true";
+
+    // For inline image preview of Vercel Blob files, redirect directly to CDN:
+    if (inline && (download.file.storageFilename.startsWith("http://") || download.file.storageFilename.startsWith("https://"))) {
+      return NextResponse.redirect(download.file.storageFilename, 307);
+    }
+
     const disposition = inline
       ? `inline; filename="${encodeURIComponent(download.filename)}"`
       : `attachment; filename="${encodeURIComponent(download.filename)}"`;
@@ -40,6 +46,7 @@ export async function GET(
         "Content-Disposition": disposition,
       },
     });
+
 
   } catch (err: any) {
     return new NextResponse(err.message || "File download error", { status: 400 });

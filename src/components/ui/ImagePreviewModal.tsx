@@ -20,6 +20,12 @@ export function ImagePreviewModal({
   subtitle,
   downloadUrl,
 }: ImagePreviewModalProps) {
+  const [hasError, setHasError] = React.useState(false);
+
+  React.useEffect(() => {
+    setHasError(false);
+  }, [imageUrl, isOpen]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -89,14 +95,28 @@ export function ImagePreviewModal({
 
         {/* Image Display */}
         <div className="flex-1 bg-slate-900/95 flex items-center justify-center p-4 min-h-[300px] max-h-[75vh] overflow-auto">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageUrl}
-            alt={title}
-            className="max-h-full max-w-full object-contain rounded-lg shadow-lg"
-          />
+          {hasError ? (
+            <div className="text-center p-8 text-slate-300 max-w-md">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3">
+                <ZoomIn className="w-6 h-6" />
+              </div>
+              <h4 className="font-bold text-white text-sm mb-1">Gagal Memuat Gambar</h4>
+              <p className="text-xs text-slate-400 mb-3 leading-relaxed">
+                File foto tidak ditemukan atau penyimpanan cloud belum tersinkron. Silakan hapus dan unggah ulang foto ini.
+              </p>
+            </div>
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={imageUrl}
+              alt={title}
+              onError={() => setHasError(true)}
+              className="max-h-full max-w-full object-contain rounded-lg shadow-lg"
+            />
+          )}
         </div>
       </div>
     </div>
   );
 }
+
