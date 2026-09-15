@@ -367,27 +367,27 @@ export function ShareContentView({ closing, token }: ShareContentViewProps) {
 
             {recapPhotoFile ? (
               <div className="space-y-3">
-                {/* Large Preview Banner with Hover Zoom Overlay */}
+                {/* Natural Preview Banner with Hover Zoom Overlay */}
                 <button
                   type="button"
                   onClick={() => openPreview(recapPhotoFile, "Foto Rekapitulasi Closing")}
-                  className="group relative w-full h-44 rounded-xl overflow-hidden border border-slate-200 bg-slate-900/5 block text-left shadow-2xs cursor-pointer"
+                  className="group relative w-full h-48 rounded-xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center p-2 text-left shadow-2xs cursor-pointer"
                   title="Klik untuk memperbesar preview"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/api/files/${recapPhotoFile.id}/download?inline=true&token=${token}`}
                     alt="Foto rekapitulasi"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="max-h-full max-w-full object-contain rounded"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent flex items-end p-3">
-                    <div className="flex items-center justify-between w-full text-white">
-                      <div className="text-xs font-semibold truncate pr-2">
+                  <div className="absolute inset-0 bg-slate-950/0 group-hover:bg-slate-950/20 transition-colors flex items-end p-2.5">
+                    <div className="flex items-center justify-between w-full text-white bg-slate-950/70 backdrop-blur-xs px-2.5 py-1.5 rounded-lg">
+                      <div className="text-[11px] font-semibold truncate pr-2">
                         {recapPhotoFile.originalFilename}
                       </div>
-                      <span className="bg-white/20 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 shrink-0">
-                        <ZoomIn className="w-3 h-3" /> Perbesar
+                      <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shrink-0">
+                        <ZoomIn className="w-3 h-3" /> Preview
                       </span>
                     </div>
                   </div>
