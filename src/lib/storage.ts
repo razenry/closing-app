@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { put, del, head } from "@vercel/blob";
 
 export interface UploadInput {
   buffer: Buffer;
@@ -27,6 +28,99 @@ export interface IStorageService {
   exists(storageFilename: string): Promise<boolean>;
 }
 
+/**
+ * Vercel Blob Storage implementation for Production / Cloud deployments.
+ */
+export class VercelBlobStorageService implements IStorageService {
+  private token: string;
+
+  constructor(token?: string) {
+    this.token = token || process.env.BLOB_READ_WRITE_TOKEN || "";
+  }
+
+  async upload(input: UploadInput): Promise<UploadResult> {
+    const ext = path.extname(input.originalFilename).toLowerCase();
+    const randomId = crypto.randomBytes(16).toString("hex");
+    const blobPath = `closings/${Date.now()}-${randomId}${ext}`;
+
+    const blob = await put(blobPath, input.buffer, {
+      access: "public",
+      contentType: input.mimeType,
+      token: this.token || process.env.BLOB_READ_WRITE_TOKEN,
+    });
+
+    return {
+      storageFilename: blob.url,
+      size: input.buffer.length,
+    };
+  }
+
+  async download(storageFilename: string, originalFilename?: string): Promise<DownloadResult> {
+    if (storageFilename.startsWith("http://") || storageFilename.startsWith("https://")) {
+      const res = await fetch(storageFilename);
+      if (!res.ok) {
+        throw new Error(`Gagal mengambil file dari Blob Storage: ${res.statusText}`);
+      }
+      const arrayBuffer = await res.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const mimeType = res.headers.get("content-type") || "application/octet-stream";
+
+      let cleanName = originalFilename;
+      if (!cleanName) {
+        try {
+          const urlObj = new URL(storageFilename);
+          cleanName = path.basename(urlObj.pathname);
+        } catch {
+          cleanName = "downloaded-file";
+        }
+      }
+
+      return {
+        stream: buffer,
+        size: buffer.length,
+        mimeType,
+        filename: cleanName,
+      };
+    }
+
+    const local = new LocalStorageService();
+    return local.download(storageFilename, originalFilename);
+  }
+
+  async delete(storageFilename: string): Promise<boolean> {
+    if (storageFilename.startsWith("http://") || storageFilename.startsWith("https://")) {
+      try {
+        await del(storageFilename, {
+          token: this.token || process.env.BLOB_READ_WRITE_TOKEN,
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    const local = new LocalStorageService();
+    return local.delete(storageFilename);
+  }
+
+  async exists(storageFilename: string): Promise<boolean> {
+    if (storageFilename.startsWith("http://") || storageFilename.startsWith("https://")) {
+      try {
+        const details = await head(storageFilename, {
+          token: this.token || process.env.BLOB_READ_WRITE_TOKEN,
+        });
+        return !!details;
+      } catch {
+        return false;
+      }
+    }
+    const local = new LocalStorageService();
+    return local.exists(storageFilename);
+  }
+}
+
+/**
+ * Local filesystem storage implementation (fallback for offline local dev without blob token).
+ */
 export class LocalStorageService implements IStorageService {
   private baseDir: string;
 
@@ -42,16 +136,12 @@ export class LocalStorageService implements IStorageService {
         fs.mkdirSync(this.baseDir, { recursive: true });
       }
     } catch {
-      // In serverless environments (e.g. Vercel / AWS Lambda), process.cwd() is read-only (/var/task).
-      // Fallback safely to /tmp.
       this.baseDir = path.join("/tmp", "private_storage", "uploads");
       try {
         if (!fs.existsSync(this.baseDir)) {
           fs.mkdirSync(this.baseDir, { recursive: true });
         }
-      } catch {
-        // Ignore fallback init errors
-      }
+      } catch {}
     }
   }
 
@@ -97,7 +187,6 @@ export class LocalStorageService implements IStorageService {
     };
   }
 
-
   async download(storageFilename: string, originalFilename?: string): Promise<DownloadResult> {
     const fullPath = this.resolveSafePath(storageFilename);
     if (!fs.existsSync(fullPath)) {
@@ -142,4 +231,42 @@ export class LocalStorageService implements IStorageService {
   }
 }
 
-export const storageService = new LocalStorageService();
+/**
+ * Unified storage delegator: Uses Vercel Blob when token is configured,
+ * otherwise falls back gracefully to LocalStorage.
+ */
+export class UnifiedStorageService implements IStorageService {
+  private getActiveService(): IStorageService {
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      return new VercelBlobStorageService(process.env.BLOB_READ_WRITE_TOKEN);
+    }
+    return new LocalStorageService();
+  }
+
+  async upload(input: UploadInput): Promise<UploadResult> {
+    return this.getActiveService().upload(input);
+  }
+
+  async download(storageFilename: string, originalFilename?: string): Promise<DownloadResult> {
+    if (storageFilename.startsWith("http://") || storageFilename.startsWith("https://")) {
+      return new VercelBlobStorageService().download(storageFilename, originalFilename);
+    }
+    return new LocalStorageService().download(storageFilename, originalFilename);
+  }
+
+  async delete(storageFilename: string): Promise<boolean> {
+    if (storageFilename.startsWith("http://") || storageFilename.startsWith("https://")) {
+      return new VercelBlobStorageService().delete(storageFilename);
+    }
+    return new LocalStorageService().delete(storageFilename);
+  }
+
+  async exists(storageFilename: string): Promise<boolean> {
+    if (storageFilename.startsWith("http://") || storageFilename.startsWith("https://")) {
+      return new VercelBlobStorageService().exists(storageFilename);
+    }
+    return new LocalStorageService().exists(storageFilename);
+  }
+}
+
+export const storageService: IStorageService = new UnifiedStorageService();
