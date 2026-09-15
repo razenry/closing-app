@@ -19,19 +19,26 @@ interface ChecklistSectionProps {
 export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps) {
   const [selectedGramasi, setSelectedGramasi] = useState<string | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const isEditable =
     currentUser.role === Role.STAFF_CABANG &&
     (closing.status === ClosingStatus.DRAFT || closing.status === ClosingStatus.REVISION_REQUIRED);
 
-  const handleToggleStatus = (gramasi: string, currentStatus: StockStatus) => {
+  const handleSetStatus = (gramasi: string, targetStatus: StockStatus) => {
     if (!isEditable) return;
-    const nextStatus =
-      currentStatus === StockStatus.HAS_STOCK ? StockStatus.NO_STOCK : StockStatus.HAS_STOCK;
+    setActionError(null);
 
     startTransition(async () => {
-      await updateStockStatusAction(closing.id, gramasi, nextStatus);
+      try {
+        const res = await updateStockStatusAction(closing.id, gramasi, targetStatus);
+        if (res?.error) {
+          setActionError(res.error);
+        }
+      } catch (err: any) {
+        setActionError(err.message || "Gagal memperbarui status stok.");
+      }
     });
   };
 
@@ -59,6 +66,13 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
           </p>
         </div>
       </div>
+
+      {actionError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2 animate-in fade-in">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
+          <span>{actionError}</span>
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
@@ -98,7 +112,7 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                       <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-100">
                         <button
                           type="button"
-                          onClick={() => handleToggleStatus(gramasi, StockStatus.NO_STOCK)}
+                          onClick={() => handleSetStatus(gramasi, StockStatus.HAS_STOCK)}
                           disabled={isPending}
                           className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                             stockStatus === StockStatus.HAS_STOCK
@@ -110,7 +124,7 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleToggleStatus(gramasi, StockStatus.HAS_STOCK)}
+                          onClick={() => handleSetStatus(gramasi, StockStatus.NO_STOCK)}
                           disabled={isPending}
                           className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                             stockStatus === StockStatus.NO_STOCK
@@ -122,6 +136,7 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                         </button>
                       </div>
                     ) : (
+
                       <span
                         className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold ${
                           stockStatus === StockStatus.HAS_STOCK

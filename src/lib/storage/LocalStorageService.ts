@@ -7,8 +7,17 @@ export class LocalStorageService implements IStorageService {
 
   constructor(customBaseDir?: string) {
     this.baseDir = customBaseDir ?? path.join(process.cwd(), "private_storage", "uploads");
-    if (!fs.existsSync(this.baseDir)) {
-      fs.mkdirSync(this.baseDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.baseDir)) {
+        fs.mkdirSync(this.baseDir, { recursive: true });
+      }
+    } catch {
+      this.baseDir = path.join("/tmp", "private_storage", "uploads");
+      try {
+        if (!fs.existsSync(this.baseDir)) {
+          fs.mkdirSync(this.baseDir, { recursive: true });
+        }
+      } catch {}
     }
   }
 
@@ -23,19 +32,32 @@ export class LocalStorageService implements IStorageService {
   }
 
   async upload(options: UploadOptions): Promise<{ storageKey: string; size: number }> {
-    const fullPath = this.resolveSafePath(options.key);
-    const parentDir = path.dirname(fullPath);
-    if (!fs.existsSync(parentDir)) {
-      fs.mkdirSync(parentDir, { recursive: true });
+    let fullPath = this.resolveSafePath(options.key);
+    try {
+      const parentDir = path.dirname(fullPath);
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+      await fs.promises.writeFile(fullPath, options.buffer);
+    } catch (err: any) {
+      if (err.code === "EROFS" || !this.baseDir.startsWith("/tmp")) {
+        this.baseDir = path.join("/tmp", "private_storage", "uploads");
+        if (!fs.existsSync(this.baseDir)) {
+          fs.mkdirSync(this.baseDir, { recursive: true });
+        }
+        fullPath = this.resolveSafePath(options.key);
+        await fs.promises.writeFile(fullPath, options.buffer);
+      } else {
+        throw err;
+      }
     }
-
-    await fs.promises.writeFile(fullPath, options.buffer);
     const stats = await fs.promises.stat(fullPath);
     return {
       storageKey: options.key,
       size: stats.size,
     };
   }
+
 
   async download(key: string): Promise<DownloadResult> {
     const fullPath = this.resolveSafePath(key);

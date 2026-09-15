@@ -37,8 +37,21 @@ export class LocalStorageService implements IStorageService {
       this.baseDir = path.join(process.cwd(), "private_storage", "uploads");
     }
 
-    if (!fs.existsSync(this.baseDir)) {
-      fs.mkdirSync(this.baseDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.baseDir)) {
+        fs.mkdirSync(this.baseDir, { recursive: true });
+      }
+    } catch {
+      // In serverless environments (e.g. Vercel / AWS Lambda), process.cwd() is read-only (/var/task).
+      // Fallback safely to /tmp.
+      this.baseDir = path.join("/tmp", "private_storage", "uploads");
+      try {
+        if (!fs.existsSync(this.baseDir)) {
+          fs.mkdirSync(this.baseDir, { recursive: true });
+        }
+      } catch {
+        // Ignore fallback init errors
+      }
     }
   }
 
@@ -55,9 +68,27 @@ export class LocalStorageService implements IStorageService {
     const ext = path.extname(input.originalFilename).toLowerCase();
     const randomId = crypto.randomBytes(24).toString("hex");
     const storageFilename = `${Date.now()}-${randomId}${ext}`;
-    const fullPath = this.resolveSafePath(storageFilename);
+    let fullPath = this.resolveSafePath(storageFilename);
 
-    await fs.promises.writeFile(fullPath, input.buffer);
+    try {
+      const parentDir = path.dirname(fullPath);
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+      await fs.promises.writeFile(fullPath, input.buffer);
+    } catch (err: any) {
+      if (err.code === "EROFS" || !this.baseDir.startsWith("/tmp")) {
+        this.baseDir = path.join("/tmp", "private_storage", "uploads");
+        if (!fs.existsSync(this.baseDir)) {
+          fs.mkdirSync(this.baseDir, { recursive: true });
+        }
+        fullPath = this.resolveSafePath(storageFilename);
+        await fs.promises.writeFile(fullPath, input.buffer);
+      } else {
+        throw err;
+      }
+    }
+
     const stat = await fs.promises.stat(fullPath);
 
     return {
@@ -65,6 +96,7 @@ export class LocalStorageService implements IStorageService {
       size: stat.size,
     };
   }
+
 
   async download(storageFilename: string, originalFilename?: string): Promise<DownloadResult> {
     const fullPath = this.resolveSafePath(storageFilename);
