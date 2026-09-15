@@ -40,28 +40,28 @@ export default async function AdminBranchesPage() {
   const inactiveBranches = totalBranches - activeBranches;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-4">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-          <span>Pengaturan & Master Data</span>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-1">
+          <span>Master Data</span>
           <span>/</span>
-          <span className="font-semibold text-slate-700">Master Data Cabang</span>
+          <span className="font-semibold text-slate-700">Cabang</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
-          Manajemen Master Cabang
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          Data Cabang
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Kelola cabang operasional, kode identitas dokumen, serta status keaktifan cabang Logam Mulia.
+          Kelola cabang operasional, kode identitas, dan status keaktifan cabang.
         </p>
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-slate-500">Total Cabang Terdaftar</span>
-            <div className="text-2xl font-bold text-slate-900 mt-1">{totalBranches}</div>
+            <span className="text-[11px] font-medium text-slate-500">Total Cabang</span>
+            <div className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{totalBranches}</div>
           </div>
           <div className="p-2.5 rounded-xl bg-slate-100 text-slate-700">
             <Building2 className="w-5 h-5" />

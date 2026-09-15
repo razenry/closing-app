@@ -129,71 +129,69 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Filter & Action Toolbar */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div className="space-y-3">
+        {/* Filter & Action Toolbar - Compact */}
+        <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-xs space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             {/* Search Bar */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 sm:top-2.5" />
+            <div className="relative flex-1 sm:max-w-xs">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama atau email pengguna..."
-                className="w-full pl-9 pr-8 py-2 border border-slate-300 rounded-lg text-xs sm:text-xs placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500 bg-white"
+                placeholder="Cari nama / email..."
+                className="w-full pl-8 pr-7 py-1.5 border border-slate-300 rounded-lg text-xs placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500 bg-white"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold"
-                  aria-label="Hapus pencarian"
+                  className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold leading-none"
+                  aria-label="Hapus"
                 >
                   ✕
                 </button>
               )}
             </div>
 
-            {/* Tambah Pengguna Baru Button (Desktop & Mobile) */}
-            <button
-              type="button"
-              onClick={handleOpenAdd}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-950 font-bold text-xs shadow-xs transition-all cursor-pointer w-full sm:w-auto shrink-0"
-            >
-              <PlusCircle className="w-4 h-4 shrink-0" />
-              <span>Tambah Pengguna Baru</span>
-            </button>
-          </div>
-
-          {/* Filters Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+            {/* Filter Dropdowns + Tambah Button */}
+            <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as any)}
-                className="w-full sm:w-auto px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-medium text-slate-700"
+                className="flex-1 sm:flex-initial px-2 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-700"
               >
                 <option value="ALL">Semua Role</option>
-                <option value={Role.STAFF_CABANG}>STAFF CABANG</option>
-                <option value={Role.STAFF_PUSAT}>STAFF PUSAT</option>
+                <option value={Role.STAFF_CABANG}>Cabang</option>
+                <option value={Role.STAFF_PUSAT}>Pusat</option>
               </select>
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full sm:w-auto px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-medium text-slate-700"
+                className="flex-1 sm:flex-initial px-2 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-700"
               >
                 <option value="ALL">Semua Status</option>
-                <option value="ACTIVE">Status: Aktif</option>
-                <option value="INACTIVE">Status: Nonaktif</option>
+                <option value="ACTIVE">Aktif</option>
+                <option value="INACTIVE">Nonaktif</option>
               </select>
-            </div>
 
-            <div className="flex items-center justify-between sm:justify-end gap-2 text-[11px] text-slate-500">
+              <button
+                type="button"
+                onClick={handleOpenAdd}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0 w-full sm:w-auto"
+              >
+                <PlusCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Tambah Pengguna</span>
+              </button>
+            </div>
+          </div>
+
+          {(hasActiveFilters || filteredUsers.length !== initialUsers.length) && (
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
               <span>
-                Menampilkan <strong className="text-slate-800">{filteredUsers.length}</strong> dari{" "}
-                {initialUsers.length}
+                Menampilkan <strong className="text-slate-800">{filteredUsers.length}</strong> dari {initialUsers.length} pengguna
               </span>
               {hasActiveFilters && (
                 <button
@@ -205,7 +203,7 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                 </button>
               )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* User List Container */}
@@ -213,17 +211,14 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
           {/* Mobile Touch Cards */}
           <div className="md:hidden divide-y divide-slate-100">
             {filteredUsers.length === 0 ? (
-              <div className="py-12 px-4 text-center text-slate-400 space-y-2">
-                <Users className="w-10 h-10 text-slate-300 mx-auto" />
-                <p className="font-bold text-slate-700 text-xs">Tidak ada pengguna ditemukan</p>
-                <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
-                  Coba ganti kata kunci pencarian atau ubah filter role dan status di atas.
-                </p>
+              <div className="py-10 px-4 text-center text-slate-400 space-y-2">
+                <Users className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="font-bold text-slate-700 text-xs">Tidak ada data pengguna</p>
                 {hasActiveFilters && (
                   <button
                     type="button"
                     onClick={handleClearFilters}
-                    className="inline-block mt-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer"
+                    className="inline-block mt-1 px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer"
                   >
                     Hapus Filter
                   </button>
@@ -231,14 +226,14 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
               </div>
             ) : (
               filteredUsers.map((user) => (
-                <div key={user.id} className="p-3.5 space-y-2.5">
+                <div key={user.id} className="p-3 space-y-2">
                   {/* Header info with Avatar */}
                   <div className="flex items-start gap-2.5">
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs ${
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
                         user.role === Role.STAFF_PUSAT
-                          ? "bg-indigo-100 text-indigo-800 border border-indigo-200"
-                          : "bg-amber-100 text-amber-800 border border-amber-200"
+                          ? "bg-indigo-100 text-indigo-800"
+                          : "bg-amber-100 text-amber-800"
                       }`}
                     >
                       {getInitials(user.name)}
@@ -246,7 +241,7 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1.5">
-                        <h4 className="font-bold text-slate-900 text-sm leading-tight truncate">
+                        <h4 className="font-bold text-slate-900 text-xs leading-tight truncate">
                           {user.name}
                         </h4>
                         <span
@@ -258,70 +253,63 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              user.active ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                              user.active ? "bg-emerald-500" : "bg-slate-400"
                             }`}
                           />
                           {user.active ? "Aktif" : "Nonaktif"}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 font-mono truncate mt-0.5">
+                      <p className="text-[11px] text-slate-500 font-mono truncate mt-0.5">
                         {user.email}
                       </p>
                     </div>
                   </div>
 
                   {/* Role & Branch Details */}
-                  <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-200/80 space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-medium">Role Akun:</span>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          user.role === Role.STAFF_PUSAT
-                            ? "bg-indigo-100 text-indigo-800"
-                            : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
-                        {user.role === Role.STAFF_PUSAT ? "KANTOR PUSAT" : "STAFF CABANG"}
-                      </span>
-                    </div>
+                  <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center justify-between text-[11px] gap-2">
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                        user.role === Role.STAFF_PUSAT
+                          ? "bg-indigo-100 text-indigo-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {user.role === Role.STAFF_PUSAT ? "PUSAT" : "CABANG"}
+                    </span>
 
-                    <div className="flex items-start gap-1.5 text-[11px] text-slate-700">
-                      <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                      <span className="break-words font-medium">
-                        {user.role === Role.STAFF_CABANG ? (
-                          user.branch ? (
-                            `${user.branch.name} (${user.branch.code})`
-                          ) : (
-                            <span className="text-red-500 italic">Belum ditentukan cabang</span>
-                          )
-                        ) : user.authorizedBranchIds ? (
-                          `Wewenang: ${user.authorizedBranchIds}`
-                        ) : (
-                          "Wewenang: Seluruh Cabang (Full)"
-                        )}
+                    <div className="flex items-center gap-1 text-slate-600 min-w-0 truncate text-[11px]">
+                      <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="truncate font-medium">
+                        {user.role === Role.STAFF_CABANG
+                          ? user.branch
+                            ? `${user.branch.name} (${user.branch.code})`
+                            : "Belum ditetapkan"
+                          : user.authorizedBranchIds
+                          ? user.authorizedBranchIds
+                          : "Seluruh Cabang"}
                       </span>
                     </div>
                   </div>
 
-                  {/* 3-Column Action Buttons for Touch */}
+                  {/* 3-Column Action Buttons */}
                   <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-100">
                     <button
                       type="button"
                       onClick={() => handleOpenReset(user)}
-                      className="inline-flex items-center justify-center gap-1 py-2 px-2 rounded-lg border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50/40 text-slate-700 text-xs font-semibold active:scale-95 transition-all cursor-pointer min-h-[36px]"
-                      title="Reset kata sandi pengguna"
+                      className="inline-flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50 text-slate-700 text-xs font-medium active:scale-95 transition-all cursor-pointer"
+                      title="Reset kata sandi"
                     >
-                      <KeyRound className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <KeyRound className="w-3 h-3 text-amber-600 shrink-0" />
                       <span>Sandi</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(user)}
-                      className="inline-flex items-center justify-center gap-1 py-2 px-2 rounded-lg border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold active:scale-95 transition-all cursor-pointer min-h-[36px]"
-                      title="Edit data dan penugasan"
+                      className="inline-flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-700 text-xs font-medium active:scale-95 transition-all cursor-pointer"
+                      title="Edit data"
                     >
-                      <Edit2 className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                      <Edit2 className="w-3 h-3 text-slate-600 shrink-0" />
                       <span>Edit</span>
                     </button>
 
@@ -329,24 +317,13 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                       type="button"
                       onClick={() => handleToggleActive(user)}
                       disabled={isPending}
-                      className={`inline-flex items-center justify-center gap-1 py-2 px-2 rounded-lg text-xs font-semibold active:scale-95 transition-all cursor-pointer min-h-[36px] ${
+                      className={`inline-flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-xs font-medium active:scale-95 transition-all cursor-pointer ${
                         user.active
                           ? "border border-red-200 bg-white hover:bg-red-50 text-red-600"
                           : "border border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-700"
                       }`}
-                      title={user.active ? "Nonaktifkan / Blokir akun" : "Aktifkan kembali akun"}
                     >
-                      {user.active ? (
-                        <>
-                          <XCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span>Blokir</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                          <span>Aktifkan</span>
-                        </>
-                      )}
+                      {user.active ? "Blokir" : "Aktifkan"}
                     </button>
                   </div>
                 </div>
@@ -354,22 +331,22 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
             )}
           </div>
 
-          {/* Desktop Table View */}
+          {/* Desktop Table View - Streamlined */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-xs min-w-[720px]">
+            <table className="w-full text-left text-xs min-w-[620px]">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px] bg-slate-50">
-                  <th className="py-3 px-4">Pengguna</th>
-                  <th className="py-3 px-4">Role Akun</th>
-                  <th className="py-3 px-4">Penugasan Cabang / Wewenang</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Aksi Manajemen</th>
+                  <th className="py-2.5 px-3.5">Pengguna</th>
+                  <th className="py-2.5 px-3.5">Role</th>
+                  <th className="py-2.5 px-3.5">Penugasan / Cabang</th>
+                  <th className="py-2.5 px-3.5">Status</th>
+                  <th className="py-2.5 px-3.5 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-slate-400">
+                    <td colSpan={5} className="py-10 text-center text-slate-400">
                       <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                       <p className="font-semibold text-slate-600">Tidak ada pengguna ditemukan</p>
                       <p className="text-[11px] text-slate-400 mt-0.5">
@@ -380,10 +357,10 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                 ) : (
                   filteredUsers.map((user) => (
                     <tr key={user.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
+                      <td className="py-2.5 px-3.5">
+                        <div className="flex items-center gap-2.5">
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[11px] shrink-0 ${
                               user.role === Role.STAFF_PUSAT
                                 ? "bg-indigo-100 text-indigo-800"
                                 : "bg-amber-100 text-amber-800"
@@ -391,28 +368,28 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                           >
                             {getInitials(user.name)}
                           </div>
-                          <div>
-                            <div className="font-semibold text-slate-900 leading-tight">
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900 leading-tight truncate">
                               {user.name}
                             </div>
-                            <div className="text-slate-500 font-mono text-[11px] mt-0.5">
+                            <div className="text-slate-500 font-mono text-[11px] truncate">
                               {user.email}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-2.5 px-3.5">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-bold ${
+                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                             user.role === Role.STAFF_PUSAT
                               ? "bg-indigo-100 text-indigo-800 border border-indigo-200"
                               : "bg-amber-100 text-amber-800 border border-amber-200"
                           }`}
                         >
-                          {user.role === Role.STAFF_PUSAT ? "KANTOR PUSAT" : "STAFF CABANG"}
+                          {user.role === Role.STAFF_PUSAT ? "PUSAT" : "CABANG"}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-700">
+                      <td className="py-2.5 px-3.5 text-slate-700">
                         {user.role === Role.STAFF_CABANG ? (
                           user.branch ? (
                             <div className="flex items-center gap-1.5 font-medium">
@@ -426,17 +403,17 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                           )
                         ) : user.authorizedBranchIds ? (
                           <span className="text-slate-600 text-[11px]">
-                            Terbatas: {user.authorizedBranchIds}
+                            {user.authorizedBranchIds}
                           </span>
                         ) : (
                           <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
-                            <Shield className="w-3 h-3 shrink-0" /> Seluruh Cabang (Full Access)
+                            <Shield className="w-3 h-3 shrink-0" /> Seluruh Cabang
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-2.5 px-3.5">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             user.active
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                               : "bg-slate-100 text-slate-500 border border-slate-200"
@@ -455,13 +432,13 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                           )}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                      <td className="py-2.5 px-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             type="button"
                             onClick={() => handleOpenReset(user)}
-                            className="px-2.5 py-1 text-xs font-medium text-slate-700 hover:text-amber-800 border border-slate-200 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                            title="Reset kata sandi pengguna"
+                            className="px-2 py-1 text-xs font-medium text-slate-700 hover:text-amber-800 border border-slate-200 hover:bg-amber-50 rounded-md transition-colors cursor-pointer flex items-center gap-1"
+                            title="Reset sandi"
                           >
                             <KeyRound className="w-3 h-3 text-amber-600" />
                             <span>Sandi</span>
@@ -470,8 +447,8 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(user)}
-                            className="px-2.5 py-1 text-slate-700 hover:text-slate-900 border border-slate-200 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                            title="Edit data dan role"
+                            className="px-2 py-1 text-slate-700 hover:text-slate-900 border border-slate-200 hover:bg-slate-100 rounded-md transition-colors cursor-pointer flex items-center gap-1"
+                            title="Edit"
                           >
                             <Edit2 className="w-3 h-3" />
                             <span>Edit</span>
@@ -481,7 +458,7 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                             type="button"
                             onClick={() => handleToggleActive(user)}
                             disabled={isPending}
-                            className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
+                            className={`px-2 py-1 rounded-md border text-xs font-medium transition-colors cursor-pointer ${
                               user.active
                                 ? "border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50"
                                 : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"

@@ -52,13 +52,13 @@ export function Sidebar({ user }: SidebarProps) {
   const adminNavItems = [
     {
       href: "/admin/branches",
-      label: "Master Cabang",
+      label: "Cabang",
       icon: Building2,
       active: pathname.startsWith("/admin/branches"),
     },
     {
       href: "/admin/users",
-      label: "Master Pengguna & Akun",
+      label: "Pengguna",
       icon: Users,
       active: pathname.startsWith("/admin/users"),
     },
