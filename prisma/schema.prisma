@@ -1,0 +1,258 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STAFF_CABANG
+  STAFF_PUSAT
+}
+
+enum ClosingStatus {
+  DRAFT
+  SUBMITTED
+  REVISION_REQUIRED
+  VERIFIED
+}
+
+enum StockStatus {
+  HAS_STOCK
+  NO_STOCK
+  NOT_SET
+}
+
+enum FileCategory {
+  STOCK_PHOTO
+  STOCK_EXCEL
+  RECAP_PHOTO
+}
+
+enum ActivityAction {
+  CREATE_CLOSING
+  UPDATE_CLOSING
+  UPLOAD_FILE
+  DELETE_FILE
+  SUBMIT_CLOSING
+  OPEN_CLOSING
+  REQUEST_REVISION
+  UPLOAD_REVISION
+  VERIFY_CLOSING
+  CREATE_SHARE_LINK
+  REVOKE_SHARE_LINK
+  DOWNLOAD_FILE
+  DOWNLOAD_ALL
+}
+
+model Branch {
+  id        String    @id @default(cuid())
+  name      String
+  code      String    @unique
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  users     User[]
+  closings  Closing[]
+
+  @@map("branches")
+}
+
+model User {
+  id                  String            @id @default(cuid())
+  name                String
+  email               String            @unique
+  passwordHash        String?
+  emailVerified       Boolean           @default(false)
+  image               String?
+  role                Role              @default(STAFF_CABANG)
+  branchId            String?
+  authorizedBranchIds String?           // Comma-separated branch IDs for STAFF_PUSAT scope
+  active              Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  branch              Branch?           @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  closings            Closing[]         @relation("CreatedClosings")
+  verifiedClosings    Closing[]         @relation("VerifiedClosings")
+  files               File[]            @relation("UploadedFiles")
+  activityLogs        ActivityLog[]
+  requestedRevisions  ClosingRevision[] @relation("RequestedRevisions")
+  resolvedRevisions   ClosingRevision[] @relation("ResolvedRevisions")
+  shareLinks          ShareLink[]
+  sessions            Session[]
+  accounts            Account[]
+
+  @@index([branchId])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verifications")
+}
+
+model Closing {
+  id                     String             @id @default(cuid())
+  branchId               String
+  closingDate            DateTime           @db.Date
+  status                 ClosingStatus      @default(DRAFT)
+  completenessPercentage Float              @default(0)
+  notes                  String?
+  createdById            String
+  submittedAt            DateTime?
+  verifiedAt             DateTime?
+  verifiedById           String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  branch                 Branch             @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  createdBy              User               @relation("CreatedClosings", fields: [createdById], references: [id], onDelete: Restrict)
+  verifiedBy             User?              @relation("VerifiedClosings", fields: [verifiedById], references: [id], onDelete: SetNull)
+  checklists             ClosingChecklist[]
+  files                  File[]
+  revisions              ClosingRevision[]
+  shareLinks             ShareLink[]
+  activityLogs           ActivityLog[]
+
+  @@unique([branchId, closingDate])
+  @@index([branchId])
+  @@index([closingDate])
+  @@index([status])
+  @@index([createdAt])
+  @@map("closings")
+}
+
+model ClosingChecklist {
+  id          String      @id @default(cuid())
+  closingId   String
+  gramasi     String      // "0.5g", "1g", ..., "100g", "stock_excel", "recap_photo"
+  stockStatus StockStatus @default(NOT_SET)
+  notes       String?
+  completed   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  closing     Closing     @relation(fields: [closingId], references: [id], onDelete: Cascade)
+
+  @@unique([closingId, gramasi])
+  @@index([closingId])
+  @@map("closing_checklists")
+}
+
+model ClosingRevision {
+  id             String    @id @default(cuid())
+  closingId      String
+  revisionNumber Int
+  requestedById  String
+  note           String
+  requestedAt    DateTime  @default(now())
+  resolvedById   String?
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  closing        Closing   @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  requestedBy    User      @relation("RequestedRevisions", fields: [requestedById], references: [id], onDelete: Restrict)
+  resolvedBy     User?     @relation("ResolvedRevisions", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([closingId])
+  @@map("closing_revisions")
+}
+
+model File {
+  id               String       @id @default(cuid())
+  closingId        String
+  category         FileCategory
+  gramasi          String?      // for STOCK_PHOTO: "0.5g", "1g", ..., "100g"
+  originalFilename String
+  storageFilename  String
+  mimeType         String
+  size             Int
+  uploadedById     String
+  uploadedAt       DateTime     @default(now())
+  revisionId       String?
+
+  closing          Closing      @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  uploadedBy       User         @relation("UploadedFiles", fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([closingId])
+  @@map("files")
+}
+
+model ShareLink {
+  id          String    @id @default(cuid())
+  closingId   String
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdById String
+  createdAt   DateTime  @default(now())
+
+  closing     Closing   @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([tokenHash])
+  @@index([closingId])
+  @@map("share_links")
+}
+
+model ActivityLog {
+  id          String         @id @default(cuid())
+  actorId     String
+  action      ActivityAction
+  closingId   String
+  metadata    String?        // JSON string metadata (e.g. {"filename": "...", "gramasi": "..."})
+  description String
+  createdAt   DateTime       @default(now())
+
+  actor       User           @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  closing     Closing        @relation(fields: [closingId], references: [id], onDelete: Cascade)
+
+  @@index([closingId])
+  @@index([actorId])
+  @@map("activity_logs")
+}
