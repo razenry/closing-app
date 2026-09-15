@@ -12,9 +12,10 @@ import {
   Building2,
   Shield,
   UserCheck,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Role } from "@prisma/client";
-import { UserFormModal, ResetPasswordModal } from "./UserModals";
+import { UserFormModal, ResetPasswordModal, UserActionModal } from "./UserModals";
 import { toggleUserActiveAction } from "@/actions/admin";
 import { toast } from "sonner";
 
@@ -52,8 +53,14 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isResetOpen, setIsResetOpen] = useState(false);
+  const [isActionOpen, setIsActionOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const handleOpenAction = (user: UserItem) => {
+    setSelectedUser(user);
+    setIsActionOpen(true);
+  };
 
   const handleOpenAdd = () => {
     setSelectedUser(null);
@@ -117,6 +124,29 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
     if (!parts.length || !parts[0]) return "U";
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const renderAuthorizedBranches = (branchIdsStr: string | null) => {
+    if (!branchIdsStr) {
+      return (
+        <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
+          <Shield className="w-3 h-3 shrink-0" /> Seluruh Cabang
+        </span>
+      );
+    }
+    const ids = branchIdsStr.split(",").map((s) => s.trim()).filter(Boolean);
+    const matchedNames = ids
+      .map((id) => {
+        const b = branches.find((branch) => branch.id === id || branch.code.toLowerCase() === id.toLowerCase());
+        return b ? `${b.name} (${b.code})` : id.length > 8 ? id.slice(0, 8) + "…" : id;
+      })
+      .join(", ");
+
+    return (
+      <span className="text-slate-700 text-xs font-medium" title={branchIdsStr}>
+        {matchedNames}
+      </span>
+    );
   };
 
   const hasActiveFilters = search.trim() !== "" || roleFilter !== "ALL" || statusFilter !== "ALL";
@@ -291,39 +321,15 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                     </div>
                   </div>
 
-                  {/* 3-Column Action Buttons */}
-                  <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-100">
+                  {/* Action Button that triggers Action Modal */}
+                  <div className="pt-1.5 border-t border-slate-100">
                     <button
                       type="button"
-                      onClick={() => handleOpenReset(user)}
-                      className="inline-flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50 text-slate-700 text-xs font-medium active:scale-95 transition-all cursor-pointer"
-                      title="Reset kata sandi"
+                      onClick={() => handleOpenAction(user)}
+                      className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold active:scale-95 transition-all shadow-2xs cursor-pointer"
                     >
-                      <KeyRound className="w-3 h-3 text-amber-600 shrink-0" />
-                      <span>Sandi</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEdit(user)}
-                      className="inline-flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-700 text-xs font-medium active:scale-95 transition-all cursor-pointer"
-                      title="Edit data"
-                    >
-                      <Edit2 className="w-3 h-3 text-slate-600 shrink-0" />
-                      <span>Edit</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleToggleActive(user)}
-                      disabled={isPending}
-                      className={`inline-flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-xs font-medium active:scale-95 transition-all cursor-pointer ${
-                        user.active
-                          ? "border border-red-200 bg-white hover:bg-red-50 text-red-600"
-                          : "border border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-700"
-                      }`}
-                    >
-                      {user.active ? "Blokir" : "Aktifkan"}
+                      <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Aksi & Kelola</span>
                     </button>
                   </div>
                 </div>
@@ -401,14 +407,8 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                           ) : (
                             <span className="text-red-500 italic">Belum dipilih</span>
                           )
-                        ) : user.authorizedBranchIds ? (
-                          <span className="text-slate-600 text-[11px]">
-                            {user.authorizedBranchIds}
-                          </span>
                         ) : (
-                          <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
-                            <Shield className="w-3 h-3 shrink-0" /> Seluruh Cabang
-                          </span>
+                          renderAuthorizedBranches(user.authorizedBranchIds)
                         )}
                       </td>
                       <td className="py-2.5 px-3.5">
@@ -433,40 +433,14 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                         </span>
                       </td>
                       <td className="py-2.5 px-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenReset(user)}
-                            className="px-2 py-1 text-xs font-medium text-slate-700 hover:text-amber-800 border border-slate-200 hover:bg-amber-50 rounded-md transition-colors cursor-pointer flex items-center gap-1"
-                            title="Reset sandi"
-                          >
-                            <KeyRound className="w-3 h-3 text-amber-600" />
-                            <span>Sandi</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEdit(user)}
-                            className="px-2 py-1 text-slate-700 hover:text-slate-900 border border-slate-200 hover:bg-slate-100 rounded-md transition-colors cursor-pointer flex items-center gap-1"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                            <span>Edit</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleToggleActive(user)}
-                            disabled={isPending}
-                            className={`px-2 py-1 rounded-md border text-xs font-medium transition-colors cursor-pointer ${
-                              user.active
-                                ? "border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50"
-                                : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                            }`}
-                          >
-                            {user.active ? "Nonaktifkan" : "Aktifkan"}
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAction(user)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-md transition-all shadow-2xs cursor-pointer active:scale-95"
+                        >
+                          <SlidersHorizontal className="w-3 h-3 text-slate-500" />
+                          <span>Aksi</span>
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -490,6 +464,17 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
         isOpen={isResetOpen}
         onClose={() => setIsResetOpen(false)}
         user={selectedUser}
+      />
+
+      {/* Action Modal (Modal Aksi) */}
+      <UserActionModal
+        isOpen={isActionOpen}
+        onClose={() => setIsActionOpen(false)}
+        user={selectedUser}
+        onEdit={(u) => handleOpenEdit(u as any)}
+        onResetPassword={(u) => handleOpenReset(u as any)}
+        onToggleActive={(u) => handleToggleActive(u as any)}
+        isPending={isPending}
       />
     </>
   );

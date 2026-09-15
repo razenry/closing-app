@@ -61,46 +61,46 @@ export default async function AdminUsersPage() {
         </p>
       </div>
 
-      {/* Metric Cards - Compact */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <span className="text-[11px] font-medium text-slate-500 truncate block">Total</span>
-            <div className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{totalUsers}</div>
+      {/* Mini Metric Chips */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
+            <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span>Total</span>
           </div>
-          <div className="p-2 rounded-lg bg-slate-100 text-slate-700 shrink-0">
-            <Users className="w-4 h-4" />
-          </div>
+          <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">
+            {totalUsers}
+          </span>
         </div>
 
-        <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <span className="text-[11px] font-medium text-slate-500 truncate block">Pusat</span>
-            <div className="text-lg sm:text-xl font-bold text-indigo-600 mt-0.5">{staffPusatCount}</div>
+        <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs text-indigo-700 font-medium">
+            <Shield className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span>Pusat</span>
           </div>
-          <div className="p-2 rounded-lg bg-indigo-100 text-indigo-700 shrink-0">
-            <Shield className="w-4 h-4" />
-          </div>
+          <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">
+            {staffPusatCount}
+          </span>
         </div>
 
-        <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <span className="text-[11px] font-medium text-slate-500 truncate block">Cabang</span>
-            <div className="text-lg sm:text-xl font-bold text-amber-600 mt-0.5">{staffCabangCount}</div>
+        <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs text-amber-700 font-medium">
+            <Building2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span>Cabang</span>
           </div>
-          <div className="p-2 rounded-lg bg-amber-100 text-amber-700 shrink-0">
-            <Building2 className="w-4 h-4" />
-          </div>
+          <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
+            {staffCabangCount}
+          </span>
         </div>
 
-        <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <span className="text-[11px] font-medium text-slate-500 truncate block">Aktif</span>
-            <div className="text-lg sm:text-xl font-bold text-emerald-600 mt-0.5">{activeUsersCount}</div>
+        <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
+            <UserCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            <span>Aktif</span>
           </div>
-          <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
-            <UserCheck className="w-4 h-4" />
-          </div>
+          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+            {activeUsersCount}
+          </span>
         </div>
       </div>
 

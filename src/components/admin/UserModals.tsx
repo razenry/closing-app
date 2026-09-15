@@ -1,7 +1,20 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { X, UserPlus, UserCheck, KeyRound, AlertCircle } from "lucide-react";
+import {
+  X,
+  UserPlus,
+  UserCheck,
+  KeyRound,
+  AlertCircle,
+  Edit2,
+  XCircle,
+  CheckCircle2,
+  ChevronRight,
+  Building2,
+  Shield,
+  SlidersHorizontal,
+} from "lucide-react";
 import { createUserAction, updateUserAction, resetUserPasswordAction } from "@/actions/admin";
 import { Role } from "@prisma/client";
 import { toast } from "sonner";
@@ -385,3 +398,194 @@ export function ResetPasswordModal({
     </div>
   );
 }
+
+interface UserActionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: UserData | null;
+  onEdit: (user: UserData) => void;
+  onResetPassword: (user: UserData) => void;
+  onToggleActive: (user: UserData) => void;
+  isPending?: boolean;
+}
+
+export function UserActionModal({
+  isOpen,
+  onClose,
+  user,
+  onEdit,
+  onResetPassword,
+  onToggleActive,
+  isPending,
+}: UserActionModalProps) {
+  if (!isOpen || !user) return null;
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (!parts.length || !parts[0]) return "U";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-sm w-full p-4 sm:p-5 animate-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
+              <SlidersHorizontal className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-bold text-slate-900 leading-tight">
+              Aksi Pengguna
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label="Tutup"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* User Card Summary */}
+        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-3.5 flex items-center gap-2.5">
+          <div
+            className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+              user.role === Role.STAFF_PUSAT
+                ? "bg-indigo-100 text-indigo-800"
+                : "bg-amber-100 text-amber-800"
+            }`}
+          >
+            {getInitials(user.name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-1">
+              <h4 className="font-bold text-slate-900 text-xs truncate leading-tight">
+                {user.name}
+              </h4>
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                  user.active
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-slate-200 text-slate-600"
+                }`}
+              >
+                {user.active ? "AKTIF" : "NONAKTIF"}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-mono truncate mt-0.5">
+              {user.email}
+            </p>
+          </div>
+        </div>
+
+        {/* Action List Buttons */}
+        <div className="space-y-2">
+          {/* Action 1: Edit Data & Role */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onEdit(user);
+            }}
+            className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:border-amber-300 hover:bg-amber-50/30 transition-all text-left cursor-pointer group"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-amber-100 text-slate-600 group-hover:text-amber-700 transition-colors shrink-0">
+                <Edit2 className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-800 leading-tight">
+                  Edit Data & Penugasan
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5 truncate">
+                  Perbarui nama, role, cabang tugas
+                </div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 shrink-0" />
+          </button>
+
+          {/* Action 2: Reset Kata Sandi */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onResetPassword(user);
+            }}
+            className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:border-amber-300 hover:bg-amber-50/30 transition-all text-left cursor-pointer group"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2 rounded-lg bg-amber-100 text-amber-700 shrink-0">
+                <KeyRound className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-800 leading-tight">
+                  Reset Kata Sandi
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5 truncate">
+                  Setel ulang kata sandi login pengguna
+                </div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 shrink-0" />
+          </button>
+
+          {/* Action 3: Blokir / Aktifkan Akun */}
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => {
+              onClose();
+              onToggleActive(user);
+            }}
+            className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-all text-left cursor-pointer group ${
+              user.active
+                ? "border-red-200 hover:bg-red-50 text-red-700"
+                : "border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className={`p-2 rounded-lg shrink-0 ${
+                  user.active ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-700"
+                }`}
+              >
+                {user.active ? (
+                  <XCircle className="w-4 h-4" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold leading-tight">
+                  {user.active ? "Nonaktifkan / Blokir Akun" : "Aktifkan Akun"}
+                </div>
+                <div className="text-[10px] opacity-80 mt-0.5 truncate">
+                  {user.active
+                    ? "Cegah akun staf ini login ke sistem"
+                    : "Izinkan kembali pengguna login"}
+                </div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 opacity-50 shrink-0" />
+          </button>
+        </div>
+
+        {/* Close Button */}
+        <div className="pt-3 mt-3 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer text-center"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
