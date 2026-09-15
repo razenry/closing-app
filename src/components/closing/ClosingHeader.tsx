@@ -117,7 +117,7 @@ export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
 
   return (
     <>
-      <div className="bg-white border-b border-slate-200 -mx-4 sm:-mx-6 -mt-6 p-4 sm:p-6 mb-6">
+      <div className="bg-white border-b border-slate-200 -mx-3 sm:-mx-6 -mt-3 sm:-mt-6 p-4 sm:p-6 mb-6">
         <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
           <Link href="/closings" className="hover:text-slate-800 flex items-center gap-1">
             <ChevronLeft className="w-3.5 h-3.5" />

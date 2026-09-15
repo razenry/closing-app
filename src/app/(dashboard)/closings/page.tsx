@@ -139,9 +139,57 @@ export default async function ClosingsPage({ searchParams }: ClosingsPageProps) 
         </form>
       </div>
 
-      {/* Closings Table */}
+      {/* Closings List / Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile View: Clean Touch-Friendly Cards */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {closings.length === 0 ? (
+            <div className="py-12 px-4 text-center text-slate-400">
+              <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="font-semibold text-slate-600">Tidak ada data closing ditemukan</p>
+              <p className="text-[11px] text-slate-400">Coba ubah kata kunci filter atau buat closing baru.</p>
+            </div>
+          ) : (
+            closings.map((closing) => (
+              <Link
+                key={closing.id}
+                href={`/closings/${closing.id}`}
+                className="p-4 flex flex-col gap-2.5 hover:bg-slate-50 active:bg-slate-100 transition-colors block"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 text-sm min-w-0">
+                    <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="truncate">{closing.branch.name}</span>
+                  </div>
+                  <StatusBadge status={closing.status} />
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="font-medium text-slate-700">{formatDate(closing.closingDate)}</span>
+                  <span>Oleh: {closing.createdBy.name}</span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Kelengkapan Dokumen</span>
+                    <span className="font-bold text-slate-800">{closing.completenessPercentage}% (11 item)</span>
+                  </div>
+                  <ProgressBar percentage={closing.completenessPercentage} showText={false} />
+                </div>
+
+                <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                  <span>Update: {formatDateTime(closing.updatedAt)}</span>
+                  <span className="text-amber-600 font-semibold flex items-center gap-1">
+                    Buka <ArrowRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Full Data Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px] bg-slate-50">
