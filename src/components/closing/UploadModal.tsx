@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { uploadFileAction } from "@/actions/file";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { FileCategory } from "@prisma/client";
 import { Upload, X, AlertCircle, FileText, Image as ImageIcon, FileSpreadsheet, Loader2, Sparkles } from "lucide-react";
 import { formatFileSize } from "@/lib/utils";
@@ -26,39 +28,55 @@ export function UploadModal({
   lockCategory = false,
   lockGramasi = false,
 }: UploadModalProps) {
+  const router = useRouter();
   const [category, setCategory] = useState<FileCategory>(defaultCategory);
-  const [gramasi, setGramasi] = useState<string>(defaultGramasi || "10g");
+  const [gramasi, setGramasi] = useState<string>(defaultGramasi || "0.5");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Sync state when default props change (e.g. user clicked "+ Upload 0,5gr")
   useEffect(() => {
-    setCategory(defaultCategory);
-    if (defaultGramasi) setGramasi(defaultGramasi);
-  }, [defaultCategory, defaultGramasi, isOpen]);
-
-  useEffect(() => {
-    if (file && file.type.startsWith("image/")) {
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setPreviewUrl(null);
+    if (isOpen) {
+      setCategory(defaultCategory);
+      if (defaultGramasi) {
+        setGramasi(defaultGramasi);
+      }
+      setError(null);
     }
-  }, [file]);
+  }, [isOpen, defaultCategory, defaultGramasi]);
+
+  // Clean up object URL on unmount or file change
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selected = e.target.files[0];
-      if (selected.size > 10 * 1024 * 1024) {
-        setError("Ukuran file melebihi batas maksimal 10MB.");
-        return;
-      }
-      setError(null);
-      setFile(selected);
+    setError(null);
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+
+    // Validate size (max 10MB)
+    if (selected.size > 10 * 1024 * 1024) {
+      setError("Ukuran file melebihi batas maksimal 10 MB.");
+      return;
+    }
+
+    setFile(selected);
+
+    // Create preview for images
+    if (selected.type.startsWith("image/")) {
+      const url = URL.createObjectURL(selected);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
     }
   };
 
@@ -95,6 +113,8 @@ export function UploadModal({
           );
           setFile(null);
           setPreviewUrl(null);
+          triggerRealtimeAction();
+          router.refresh();
           onClose();
         }
       } catch (err: any) {

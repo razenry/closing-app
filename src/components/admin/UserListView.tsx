@@ -15,6 +15,8 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { Role } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { UserFormModal, ResetPasswordModal, UserActionModal } from "./UserModals";
 import { toggleUserActiveAction } from "@/actions/admin";
 import { toast } from "sonner";
@@ -47,6 +49,7 @@ interface UserListViewProps {
 }
 
 export function UserListView({ initialUsers, branches }: UserListViewProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"ALL" | Role>("ALL");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
@@ -92,6 +95,8 @@ export function UserListView({ initialUsers, branches }: UserListViewProps) {
                 toast.error(res.error);
               } else {
                 toast.success(`Akun ${user.name} berhasil di${newStatus ? "aktifkan" : "nonaktifkan"}.`);
+                triggerRealtimeAction();
+                router.refresh();
               }
             } catch (err: any) {
               toast.error(err.message || "Gagal mengubah status akun.");

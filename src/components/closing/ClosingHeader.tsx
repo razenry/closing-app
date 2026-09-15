@@ -2,6 +2,8 @@
 
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { AuthUser, PermissionService } from "@/lib/permissions";
 import { ClosingWithRelations } from "@/modules/closing/closing.types";
 import { ClosingStatus, Role } from "@prisma/client";
@@ -36,6 +38,7 @@ interface ClosingHeaderProps {
 }
 
 export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
+  const router = useRouter();
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -55,6 +58,8 @@ export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
           toast.error(res.error);
         } else {
           toast.success("Dokumentasi closing berhasil diserahkan ke Kantor Pusat!");
+          triggerRealtimeAction();
+          router.refresh();
         }
       } catch (err: any) {
         const msg = err.message || "Gagal submit closing.";
@@ -74,6 +79,8 @@ export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
           toast.error(res.error);
         } else {
           toast.success("Status revisi aktif. Silakan unggah dokumen perbaikan.");
+          triggerRealtimeAction();
+          router.refresh();
         }
       } catch (err: any) {
         const msg = err.message || "Gagal memulai perbaikan.";
@@ -98,6 +105,8 @@ export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
                 toast.error(res.error);
               } else {
                 toast.success("Closing berhasil diverifikasi oleh Kantor Pusat!");
+                triggerRealtimeAction();
+                router.refresh();
               }
             } catch (err: any) {
               const msg = err.message || "Gagal verifikasi closing.";

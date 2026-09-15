@@ -12,6 +12,8 @@ import {
   FileText,
 } from "lucide-react";
 import { BranchFormModal } from "./BranchModals";
+import { useRouter } from "next/navigation";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { toggleBranchActiveAction } from "@/actions/admin";
 import { toast } from "sonner";
 
@@ -32,6 +34,7 @@ interface BranchListViewProps {
 }
 
 export function BranchListView({ initialBranches }: BranchListViewProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,6 +66,8 @@ export function BranchListView({ initialBranches }: BranchListViewProps) {
                 toast.error(res.error);
               } else {
                 toast.success(`Cabang ${branch.name} berhasil di${newStatus ? "aktifkan" : "nonaktifkan"}.`);
+                triggerRealtimeAction();
+                router.refresh();
               }
             } catch (err: any) {
               toast.error(err.message || "Gagal mengubah status cabang.");

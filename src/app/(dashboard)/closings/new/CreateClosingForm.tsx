@@ -11,6 +11,8 @@ interface CreateClosingFormProps {
   branches: any[];
 }
 
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
+
 export function CreateClosingForm({ user, branches }: CreateClosingFormProps) {
   const router = useRouter();
   const [branchId, setBranchId] = useState(user.branchId || branches[0]?.id || "");
@@ -33,6 +35,7 @@ export function CreateClosingForm({ user, branches }: CreateClosingFormProps) {
       if (res?.error) {
         setError(res.error);
       } else if (res?.closingId) {
+        triggerRealtimeAction();
         router.push(`/closings/${res.closingId}`);
       }
     });

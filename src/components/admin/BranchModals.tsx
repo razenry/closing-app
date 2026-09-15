@@ -2,6 +2,8 @@
 
 import React, { useState, useTransition } from "react";
 import { X, Building2, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { createBranchAction, updateBranchAction } from "@/actions/admin";
 import { toast } from "sonner";
 
@@ -23,6 +25,7 @@ export function BranchFormModal({
   onClose,
   branchToEdit,
 }: BranchFormModalProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +54,8 @@ export function BranchFormModal({
               ? `Cabang ${formData.get("name")} berhasil diperbarui!`
               : `Cabang ${formData.get("name")} berhasil ditambahkan!`
           );
+          triggerRealtimeAction();
+          router.refresh();
           onClose();
         }
       } catch (err: any) {

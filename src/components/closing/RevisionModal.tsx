@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { requestRevisionAction } from "@/actions/closing";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { AlertTriangle, X } from "lucide-react";
+import { toast } from "sonner";
 
 interface RevisionModalProps {
   closingId: string;
@@ -11,6 +14,7 @@ interface RevisionModalProps {
 }
 
 export function RevisionModal({ closingId, isOpen, onClose }: RevisionModalProps) {
+  const router = useRouter();
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -30,8 +34,12 @@ export function RevisionModal({ closingId, isOpen, onClose }: RevisionModalProps
       const res = await requestRevisionAction(closingId, note);
       if (res?.error) {
         setError(res.error);
+        toast.error(res.error);
       } else {
+        toast.success("Permintaan revisi berhasil dikirim ke staf cabang!");
         setNote("");
+        triggerRealtimeAction();
+        router.refresh();
         onClose();
       }
     });

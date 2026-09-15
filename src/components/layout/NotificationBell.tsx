@@ -50,9 +50,44 @@ export function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
-    // Periodic refresh every 30 seconds for live notifications
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+
+    // Listen to real-time notifications emitted by RealtimeProvider
+    const handleRealtimeNotifs = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        if (typeof customEvent.detail.unreadCount === "number") {
+          setUnreadCount(customEvent.detail.unreadCount);
+        }
+        if (customEvent.detail.newNotifications && customEvent.detail.newNotifications.length > 0) {
+          setNotifications((prev) => {
+            const existingIds = new Set(prev.map((n) => n.id));
+            const fresh = customEvent.detail.newNotifications.filter(
+              (n: any) => !existingIds.has(n.id)
+            );
+            return [...fresh, ...prev];
+          });
+        }
+      }
+    };
+
+    const handleUnreadCount = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && typeof customEvent.detail.unreadCount === "number") {
+        setUnreadCount(customEvent.detail.unreadCount);
+      }
+    };
+
+    window.addEventListener("realtime:notifications", handleRealtimeNotifs);
+    window.addEventListener("realtime:unreadCount", handleUnreadCount);
+
+    // Fast polling fallback every 6 seconds
+    const interval = setInterval(fetchNotifications, 6000);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("realtime:notifications", handleRealtimeNotifs);
+      window.removeEventListener("realtime:unreadCount", handleUnreadCount);
+    };
   }, []);
 
   // Close dropdown on outside click or Escape

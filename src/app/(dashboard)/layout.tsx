@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { RealtimeProvider } from "@/components/providers/RealtimeProvider";
 
 export default async function DashboardLayout({
   children,
@@ -17,16 +18,18 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar user={user} />
-      <div className="flex flex-1">
-        <Sidebar user={user} />
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8">
-          {children}
-        </main>
+    <RealtimeProvider user={user}>
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        <Navbar user={user} />
+        <div className="flex flex-1">
+          <Sidebar user={user} />
+          <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8">
+            {children}
+          </main>
+        </div>
+        <MobileNav user={user} />
       </div>
-      <MobileNav user={user} />
-    </div>
+    </RealtimeProvider>
   );
 }
 

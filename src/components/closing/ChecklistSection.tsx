@@ -10,6 +10,8 @@ import { ClosingWithRelations } from "@/modules/closing/closing.types";
 import { ClosingStatus, FileCategory, Role, StockStatus } from "@prisma/client";
 import { AlertCircle, CheckCircle2, Download, Trash2, Upload, ZoomIn, Eye } from "lucide-react";
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { toast } from "sonner";
 import { UploadModal } from "./UploadModal";
 
@@ -19,6 +21,7 @@ interface ChecklistSectionProps {
 }
 
 export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps) {
+  const router = useRouter();
   const [selectedGramasi, setSelectedGramasi] = useState<string | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -50,6 +53,8 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
           toast.error(res.error);
         } else {
           toast.success(`Status ${gramasi} diperbarui ke ${targetStatus === StockStatus.HAS_STOCK ? "HAS STOCK" : "NO STOCK"}`);
+          triggerRealtimeAction();
+          router.refresh();
         }
       } catch (err: any) {
         toast.error(err.message || "Gagal memperbarui status stok.");
@@ -70,6 +75,8 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                 toast.error(res.error);
               } else {
                 toast.success(`Foto stok ${gramasi} berhasil dihapus.`);
+                triggerRealtimeAction();
+                router.refresh();
               }
             } catch (err: any) {
               toast.error(err.message || "Gagal menghapus file.");

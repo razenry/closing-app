@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { AuthUser } from "@/lib/permissions";
 import { ClosingWithRelations } from "@/modules/closing/closing.types";
 import { FileCategory, Role, ClosingStatus } from "@prisma/client";
 import { deleteFileAction } from "@/actions/file";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { UploadModal } from "./UploadModal";
 import { ImagePreviewModal } from "@/components/ui/ImagePreviewModal";
 import { FileSpreadsheet, Image as ImageIcon, Download, Trash2, Upload, CheckCircle2, AlertCircle, ZoomIn, Eye } from "lucide-react";
@@ -17,6 +19,7 @@ interface MainDocsSectionProps {
 }
 
 export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) {
+  const router = useRouter();
   const [uploadCategory, setUploadCategory] = useState<FileCategory | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -40,8 +43,8 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
   const stockExcelFile = closing.files.find((f) => f.category === FileCategory.STOCK_EXCEL);
   const recapPhotoFile = closing.files.find((f) => f.category === FileCategory.RECAP_PHOTO);
 
-  const handleDelete = (fileId: string, filename: string) => {
-    toast("Hapus file dokumen?", {
+  const handleDeleteFile = (fileId: string, filename: string) => {
+    toast("Hapus dokumen?", {
       description: `Apakah Anda yakin ingin menghapus ${filename}?`,
       action: {
         label: "Hapus",
@@ -53,6 +56,8 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
                 toast.error(res.error);
               } else {
                 toast.success(`${filename} berhasil dihapus.`);
+                triggerRealtimeAction();
+                router.refresh();
               }
             } catch (err: any) {
               toast.error(err.message || "Gagal menghapus file.");
@@ -132,7 +137,7 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
                 </a>
                 {isEditable && (
                   <button
-                    onClick={() => handleDelete(stockExcelFile.id, stockExcelFile.originalFilename)}
+                    onClick={() => handleDeleteFile(stockExcelFile.id, stockExcelFile.originalFilename)}
                     disabled={isPending}
                     className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                     title="Hapus file"
@@ -267,7 +272,7 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
                 </a>
                 {isEditable && (
                   <button
-                    onClick={() => handleDelete(recapPhotoFile.id, recapPhotoFile.originalFilename)}
+                    onClick={() => handleDeleteFile(recapPhotoFile.id, recapPhotoFile.originalFilename)}
                     disabled={isPending}
                     className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                     title="Hapus file"

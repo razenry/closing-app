@@ -15,6 +15,8 @@ import {
   Shield,
   SlidersHorizontal,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { triggerRealtimeAction } from "@/components/providers/RealtimeProvider";
 import { createUserAction, updateUserAction, resetUserPasswordAction } from "@/actions/admin";
 import { Role } from "@prisma/client";
 import { toast } from "sonner";
@@ -49,6 +51,7 @@ export function UserFormModal({
   branches,
   userToEdit,
 }: UserFormModalProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -89,6 +92,8 @@ export function UserFormModal({
               ? `Pengguna ${formData.get("name")} berhasil diperbarui!`
               : `Pengguna ${formData.get("name")} berhasil didaftarkan!`
           );
+          triggerRealtimeAction();
+          router.refresh();
           onClose();
         }
       } catch (err: any) {
@@ -293,6 +298,7 @@ export function ResetPasswordModal({
   onClose,
   user,
 }: ResetPasswordModalProps) {
+  const router = useRouter();
   const [newPassword, setNewPassword] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -317,6 +323,8 @@ export function ResetPasswordModal({
         } else {
           toast.success(`Kata sandi untuk ${user.name} berhasil direset!`);
           setNewPassword("");
+          triggerRealtimeAction();
+          router.refresh();
           onClose();
         }
       } catch (err: any) {
