@@ -309,7 +309,10 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
         onClose={() => setIsUploadOpen(false)}
         defaultCategory={FileCategory.STOCK_PHOTO}
         defaultGramasi={selectedGramasi}
+        lockCategory={true}
+        lockGramasi={true}
       />
+
 
       {/* Image Preview Lightbox Modal */}
       <ImagePreviewModal

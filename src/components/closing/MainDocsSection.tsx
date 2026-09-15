@@ -298,8 +298,10 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
           isOpen={true}
           onClose={() => setUploadCategory(null)}
           defaultCategory={uploadCategory}
+          lockCategory={true}
         />
       )}
+
 
       {/* Image Preview Lightbox Modal */}
       <ImagePreviewModal
