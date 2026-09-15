@@ -8,8 +8,10 @@ import { StockStatus, FileCategory, Role, ClosingStatus } from "@prisma/client";
 import { updateStockStatusAction } from "@/actions/closing";
 import { deleteFileAction } from "@/actions/file";
 import { UploadModal } from "./UploadModal";
-import { CheckCircle2, AlertCircle, Image as ImageIcon, Download, Trash2, Upload, ExternalLink } from "lucide-react";
+import { ImagePreviewModal } from "@/components/ui/ImagePreviewModal";
+import { CheckCircle2, AlertCircle, Image as ImageIcon, Download, Trash2, Upload, ZoomIn } from "lucide-react";
 import { formatFileSize } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ChecklistSectionProps {
   closing: ClosingWithRelations;
@@ -19,8 +21,20 @@ interface ChecklistSectionProps {
 export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps) {
   const [selectedGramasi, setSelectedGramasi] = useState<string | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Preview Modal state
+  const [previewData, setPreviewData] = useState<{
+    isOpen: boolean;
+    imageUrl: string | null;
+    title: string;
+    subtitle?: string;
+    downloadUrl?: string;
+  }>({
+    isOpen: false,
+    imageUrl: null,
+    title: "",
+  });
 
   const isEditable =
     currentUser.role === Role.STAFF_CABANG &&
@@ -28,24 +42,45 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
 
   const handleSetStatus = (gramasi: string, targetStatus: StockStatus) => {
     if (!isEditable) return;
-    setActionError(null);
 
     startTransition(async () => {
       try {
         const res = await updateStockStatusAction(closing.id, gramasi, targetStatus);
         if (res?.error) {
-          setActionError(res.error);
+          toast.error(res.error);
+        } else {
+          toast.success(`Status ${gramasi} diperbarui ke ${targetStatus === StockStatus.HAS_STOCK ? "HAS STOCK" : "NO STOCK"}`);
         }
       } catch (err: any) {
-        setActionError(err.message || "Gagal memperbarui status stok.");
+        toast.error(err.message || "Gagal memperbarui status stok.");
       }
     });
   };
 
-  const handleDeleteFile = (fileId: string) => {
-    if (!confirm("Hapus file foto stok ini?")) return;
-    startTransition(async () => {
-      await deleteFileAction(fileId, closing.id);
+  const handleDeleteFile = (fileId: string, gramasi: string) => {
+    toast("Hapus foto stok?", {
+      description: `Apakah Anda yakin ingin menghapus foto stok gramasi ${gramasi}?`,
+      action: {
+        label: "Hapus",
+        onClick: () => {
+          startTransition(async () => {
+            try {
+              const res = await deleteFileAction(fileId, closing.id);
+              if (res?.error) {
+                toast.error(res.error);
+              } else {
+                toast.success(`Foto stok ${gramasi} berhasil dihapus.`);
+              }
+            } catch (err: any) {
+              toast.error(err.message || "Gagal menghapus file.");
+            }
+          });
+        },
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {},
+      },
     });
   };
 
@@ -67,20 +102,13 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
         </div>
       </div>
 
-      {actionError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
-          <span>{actionError}</span>
-        </div>
-      )}
-
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px] bg-slate-50">
               <th className="py-2.5 px-3">Gramasi</th>
               <th className="py-2.5 px-3">Deklarasi Stok</th>
-              <th className="py-2.5 px-3">Dokumentasi Foto</th>
+              <th className="py-2.5 px-3">Dokumentasi Foto & Preview</th>
               <th className="py-2.5 px-3 text-center">Status Kelengkapan</th>
               {isEditable && <th className="py-2.5 px-3 text-right">Aksi</th>}
             </tr>
@@ -136,7 +164,6 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                         </button>
                       </div>
                     ) : (
-
                       <span
                         className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold ${
                           stockStatus === StockStatus.HAS_STOCK
@@ -157,33 +184,74 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
 
                   <td className="py-3 px-3">
                     {photo ? (
-                      <div className="flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span className="truncate max-w-[160px] text-slate-700 font-medium">
-                          {photo.originalFilename}
-                        </span>
-                        <span className="text-[11px] text-slate-400">
-                          ({formatFileSize(photo.size)})
-                        </span>
-                        <a
-                          href={`/api/files/${photo.id}/download`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-1 text-slate-400 hover:text-slate-700"
-                          title="Unduh file"
+                      <div className="flex items-center gap-3">
+                        {/* Thumbnail Image with Hover Zoom Preview */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPreviewData({
+                              isOpen: true,
+                              imageUrl: `/api/files/${photo.id}/download?inline=true`,
+                              title: `Foto Stok Gramasi ${gramasi}`,
+                              subtitle: `${photo.originalFilename} • ${formatFileSize(photo.size)}`,
+                              downloadUrl: `/api/files/${photo.id}/download`,
+                            })
+                          }
+                          className="group relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0 hover:border-amber-400 transition-all cursor-pointer shadow-2xs"
+                          title="Klik untuk melihat preview ukuran penuh"
                         >
-                          <Download className="w-3.5 h-3.5" />
-                        </a>
-                        {isEditable && (
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/api/files/${photo.id}/download?inline=true`}
+                            alt={`Foto stok ${gramasi}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/35 transition-colors flex items-center justify-center">
+                            <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                          </div>
+                        </button>
+
+                        <div className="min-w-0">
                           <button
-                            onClick={() => handleDeleteFile(photo.id)}
-                            disabled={isPending}
-                            className="p-1 text-slate-400 hover:text-red-600"
-                            title="Hapus foto"
+                            type="button"
+                            onClick={() =>
+                              setPreviewData({
+                                isOpen: true,
+                                imageUrl: `/api/files/${photo.id}/download?inline=true`,
+                                title: `Foto Stok Gramasi ${gramasi}`,
+                                subtitle: `${photo.originalFilename} • ${formatFileSize(photo.size)}`,
+                                downloadUrl: `/api/files/${photo.id}/download`,
+                              })
+                            }
+                            className="text-left font-medium text-slate-800 hover:text-amber-700 truncate max-w-[140px] sm:max-w-[180px] block cursor-pointer transition-colors"
+                            title={photo.originalFilename}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            {photo.originalFilename}
                           </button>
-                        )}
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] text-slate-400">
+                              {formatFileSize(photo.size)}
+                            </span>
+                            <a
+                              href={`/api/files/${photo.id}/download`}
+                              className="text-[11px] font-medium text-amber-600 hover:underline inline-flex items-center gap-0.5"
+                              title="Unduh file foto"
+                            >
+                              <Download className="w-3 h-3" /> Unduh
+                            </a>
+                            {isEditable && (
+                              <button
+                                onClick={() => handleDeleteFile(photo.id, gramasi)}
+                                disabled={isPending}
+                                className="text-[11px] font-medium text-red-500 hover:underline inline-flex items-center gap-0.5 cursor-pointer ml-1"
+                                title="Hapus foto"
+                              >
+                                <Trash2 className="w-3 h-3" /> Hapus
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ) : stockStatus === StockStatus.NO_STOCK ? (
                       <span className="text-slate-400 italic">
@@ -219,7 +287,7 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
                         <button
                           type="button"
                           onClick={() => handleOpenUpload(gramasi)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold text-xs transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold text-xs transition-colors cursor-pointer shadow-2xs"
                         >
                           <Upload className="w-3 h-3" />
                           Unggah
@@ -234,12 +302,23 @@ export function ChecklistSection({ closing, currentUser }: ChecklistSectionProps
         </table>
       </div>
 
+      {/* Upload Modal */}
       <UploadModal
         closingId={closing.id}
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         defaultCategory={FileCategory.STOCK_PHOTO}
         defaultGramasi={selectedGramasi}
+      />
+
+      {/* Image Preview Lightbox Modal */}
+      <ImagePreviewModal
+        isOpen={previewData.isOpen}
+        onClose={() => setPreviewData((prev) => ({ ...prev, isOpen: false }))}
+        imageUrl={previewData.imageUrl}
+        title={previewData.title}
+        subtitle={previewData.subtitle}
+        downloadUrl={previewData.downloadUrl}
       />
     </div>
   );

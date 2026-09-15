@@ -6,8 +6,10 @@ import { ClosingWithRelations } from "@/modules/closing/closing.types";
 import { FileCategory, Role, ClosingStatus } from "@prisma/client";
 import { deleteFileAction } from "@/actions/file";
 import { UploadModal } from "./UploadModal";
-import { FileSpreadsheet, Image as ImageIcon, Download, Trash2, Upload, CheckCircle2, AlertCircle } from "lucide-react";
+import { ImagePreviewModal } from "@/components/ui/ImagePreviewModal";
+import { FileSpreadsheet, Image as ImageIcon, Download, Trash2, Upload, CheckCircle2, AlertCircle, ZoomIn, Eye } from "lucide-react";
 import { formatFileSize, formatDateTime } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface MainDocsSectionProps {
   closing: ClosingWithRelations;
@@ -18,6 +20,19 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
   const [uploadCategory, setUploadCategory] = useState<FileCategory | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Preview Modal state
+  const [previewData, setPreviewData] = useState<{
+    isOpen: boolean;
+    imageUrl: string | null;
+    title: string;
+    subtitle?: string;
+    downloadUrl?: string;
+  }>({
+    isOpen: false,
+    imageUrl: null,
+    title: "",
+  });
+
   const isEditable =
     currentUser.role === Role.STAFF_CABANG &&
     (closing.status === ClosingStatus.DRAFT || closing.status === ClosingStatus.REVISION_REQUIRED);
@@ -25,10 +40,30 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
   const stockExcelFile = closing.files.find((f) => f.category === FileCategory.STOCK_EXCEL);
   const recapPhotoFile = closing.files.find((f) => f.category === FileCategory.RECAP_PHOTO);
 
-  const handleDelete = (fileId: string) => {
-    if (!confirm("Hapus file ini?")) return;
-    startTransition(async () => {
-      await deleteFileAction(fileId, closing.id);
+  const handleDelete = (fileId: string, filename: string) => {
+    toast("Hapus file dokumen?", {
+      description: `Apakah Anda yakin ingin menghapus ${filename}?`,
+      action: {
+        label: "Hapus",
+        onClick: () => {
+          startTransition(async () => {
+            try {
+              const res = await deleteFileAction(fileId, closing.id);
+              if (res?.error) {
+                toast.error(res.error);
+              } else {
+                toast.success(`${filename} berhasil dihapus.`);
+              }
+            } catch (err: any) {
+              toast.error(err.message || "Gagal menghapus file.");
+            }
+          });
+        },
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {},
+      },
     });
   };
 
@@ -39,7 +74,7 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
           Dokumentasi Utama Closing (Excel & Rekap)
         </h2>
         <p className="text-xs text-slate-500">
-          Dua dokumen wajib closing: File Excel rekapitulasi stok dan Foto fisik rekapitulasi harian.
+          Dua dokumen wajib closing: File Excel rekapitulasi stok dan Foto fisik lembar rekapitulasi harian.
         </p>
       </div>
 
@@ -71,16 +106,16 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
             </div>
 
             {stockExcelFile ? (
-              <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs space-y-1">
-                <div className="font-medium text-slate-800 truncate">{stockExcelFile.originalFilename}</div>
+              <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs space-y-1 shadow-2xs">
+                <div className="font-semibold text-slate-800 truncate">{stockExcelFile.originalFilename}</div>
                 <div className="text-[11px] text-slate-400 flex items-center justify-between">
                   <span>Ukuran: {formatFileSize(stockExcelFile.size)}</span>
                   <span>{formatDateTime(stockExcelFile.uploadedAt)}</span>
                 </div>
               </div>
             ) : (
-              <div className="p-4 border border-dashed border-slate-300 rounded-lg text-center text-xs text-slate-400 bg-white">
-                File spreadsheet belum diunggah.
+              <div className="p-5 border border-dashed border-slate-300 rounded-lg text-center text-xs text-slate-400 bg-white">
+                File Excel belum diunggah.
               </div>
             )}
           </div>
@@ -90,16 +125,16 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
               <>
                 <a
                   href={`/api/files/${stockExcelFile.id}/download`}
-                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Unduh
                 </a>
                 {isEditable && (
                   <button
-                    onClick={() => handleDelete(stockExcelFile.id)}
+                    onClick={() => handleDelete(stockExcelFile.id, stockExcelFile.originalFilename)}
                     disabled={isPending}
-                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                     title="Hapus file"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -107,10 +142,11 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
                 )}
               </>
             )}
+
             {isEditable && !stockExcelFile && (
               <button
                 onClick={() => setUploadCategory(FileCategory.STOCK_EXCEL)}
-                className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-900 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
               >
                 <Upload className="w-3.5 h-3.5" />
                 Unggah Excel
@@ -119,7 +155,7 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
           </div>
         </div>
 
-        {/* 2. Recap Photo Card */}
+        {/* 2. Recap Photo Card with Image Thumbnail Preview */}
         <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -146,15 +182,58 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
             </div>
 
             {recapPhotoFile ? (
-              <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs space-y-1">
-                <div className="font-medium text-slate-800 truncate">{recapPhotoFile.originalFilename}</div>
-                <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                  <span>Ukuran: {formatFileSize(recapPhotoFile.size)}</span>
-                  <span>{formatDateTime(recapPhotoFile.uploadedAt)}</span>
+              <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs flex items-center gap-3">
+                {/* Visual Thumbnail with Hover Effect */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPreviewData({
+                      isOpen: true,
+                      imageUrl: `/api/files/${recapPhotoFile.id}/download?inline=true`,
+                      title: "Foto Rekapitulasi Closing",
+                      subtitle: `${recapPhotoFile.originalFilename} • ${formatFileSize(recapPhotoFile.size)}`,
+                      downloadUrl: `/api/files/${recapPhotoFile.id}/download`,
+                    })
+                  }
+                  className="group relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0 hover:border-blue-400 transition-all cursor-pointer shadow-2xs"
+                  title="Klik untuk melihat preview ukuran penuh"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/files/${recapPhotoFile.id}/download?inline=true`}
+                    alt="Foto rekapitulasi"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/35 transition-colors flex items-center justify-center">
+                    <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                  </div>
+                </button>
+
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPreviewData({
+                        isOpen: true,
+                        imageUrl: `/api/files/${recapPhotoFile.id}/download?inline=true`,
+                        title: "Foto Rekapitulasi Closing",
+                        subtitle: `${recapPhotoFile.originalFilename} • ${formatFileSize(recapPhotoFile.size)}`,
+                        downloadUrl: `/api/files/${recapPhotoFile.id}/download`,
+                      })
+                    }
+                    className="font-semibold text-slate-800 hover:text-blue-600 truncate block text-xs cursor-pointer text-left transition-colors"
+                  >
+                    {recapPhotoFile.originalFilename}
+                  </button>
+                  <div className="text-[11px] text-slate-400 mt-0.5 space-y-0.5">
+                    <div>Ukuran: {formatFileSize(recapPhotoFile.size)}</div>
+                    <div>{formatDateTime(recapPhotoFile.uploadedAt)}</div>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="p-4 border border-dashed border-slate-300 rounded-lg text-center text-xs text-slate-400 bg-white">
+              <div className="p-5 border border-dashed border-slate-300 rounded-lg text-center text-xs text-slate-400 bg-white">
                 Foto rekapitulasi belum diunggah.
               </div>
             )}
@@ -163,18 +242,34 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
           <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-slate-200">
             {recapPhotoFile && (
               <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPreviewData({
+                      isOpen: true,
+                      imageUrl: `/api/files/${recapPhotoFile.id}/download?inline=true`,
+                      title: "Foto Rekapitulasi Closing",
+                      subtitle: `${recapPhotoFile.originalFilename} • ${formatFileSize(recapPhotoFile.size)}`,
+                      downloadUrl: `/api/files/${recapPhotoFile.id}/download`,
+                    })
+                  }
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  Lihat Preview
+                </button>
                 <a
                   href={`/api/files/${recapPhotoFile.id}/download`}
-                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Unduh
                 </a>
                 {isEditable && (
                   <button
-                    onClick={() => handleDelete(recapPhotoFile.id)}
+                    onClick={() => handleDelete(recapPhotoFile.id, recapPhotoFile.originalFilename)}
                     disabled={isPending}
-                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                     title="Hapus file"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -182,10 +277,11 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
                 )}
               </>
             )}
+
             {isEditable && !recapPhotoFile && (
               <button
                 onClick={() => setUploadCategory(FileCategory.RECAP_PHOTO)}
-                className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-900 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
               >
                 <Upload className="w-3.5 h-3.5" />
                 Unggah Foto Rekap
@@ -195,11 +291,24 @@ export function MainDocsSection({ closing, currentUser }: MainDocsSectionProps) 
         </div>
       </div>
 
-      <UploadModal
-        closingId={closing.id}
-        isOpen={Boolean(uploadCategory)}
-        onClose={() => setUploadCategory(null)}
-        defaultCategory={uploadCategory || FileCategory.STOCK_EXCEL}
+      {/* Upload Modal */}
+      {uploadCategory && (
+        <UploadModal
+          closingId={closing.id}
+          isOpen={true}
+          onClose={() => setUploadCategory(null)}
+          defaultCategory={uploadCategory}
+        />
+      )}
+
+      {/* Image Preview Lightbox Modal */}
+      <ImagePreviewModal
+        isOpen={previewData.isOpen}
+        onClose={() => setPreviewData((prev) => ({ ...prev, isOpen: false }))}
+        imageUrl={previewData.imageUrl}
+        title={previewData.title}
+        subtitle={previewData.subtitle}
+        downloadUrl={previewData.downloadUrl}
       />
     </div>
   );

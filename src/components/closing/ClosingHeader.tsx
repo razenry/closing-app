@@ -28,6 +28,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+import { toast } from "sonner";
+
 interface ClosingHeaderProps {
   closing: ClosingWithRelations;
   currentUser: AuthUser;
@@ -46,9 +48,18 @@ export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
   const handleSubmit = () => {
     setError(null);
     startTransition(async () => {
-      const res = await submitClosingAction(closing.id);
-      if (res?.error) {
-        setError(res.error);
+      try {
+        const res = await submitClosingAction(closing.id);
+        if (res?.error) {
+          setError(res.error);
+          toast.error(res.error);
+        } else {
+          toast.success("Dokumentasi closing berhasil diserahkan ke Kantor Pusat!");
+        }
+      } catch (err: any) {
+        const msg = err.message || "Gagal submit closing.";
+        setError(msg);
+        toast.error(msg);
       }
     });
   };
@@ -56,25 +67,53 @@ export function ClosingHeader({ closing, currentUser }: ClosingHeaderProps) {
   const handleStartFix = () => {
     setError(null);
     startTransition(async () => {
-      const res = await startFixingRevisionAction(closing.id);
-      if (res?.error) {
-        setError(res.error);
+      try {
+        const res = await startFixingRevisionAction(closing.id);
+        if (res?.error) {
+          setError(res.error);
+          toast.error(res.error);
+        } else {
+          toast.success("Status revisi aktif. Silakan unggah dokumen perbaikan.");
+        }
+      } catch (err: any) {
+        const msg = err.message || "Gagal memulai perbaikan.";
+        setError(msg);
+        toast.error(msg);
       }
     });
   };
 
   const handleVerify = () => {
-    if (!confirm("Apakah Anda yakin ingin memverifikasi closing ini? Setelah diverifikasi, dokumen tidak dapat diubah secara bebas.")) {
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      const res = await verifyClosingAction(closing.id);
-      if (res?.error) {
-        setError(res.error);
-      }
+    toast("Verifikasi closing ini?", {
+      description: "Setelah diverifikasi, dokumen closing cabang akan berstatus permanen (immutable).",
+      action: {
+        label: "Verifikasi",
+        onClick: () => {
+          setError(null);
+          startTransition(async () => {
+            try {
+              const res = await verifyClosingAction(closing.id);
+              if (res?.error) {
+                setError(res.error);
+                toast.error(res.error);
+              } else {
+                toast.success("Closing berhasil diverifikasi oleh Kantor Pusat!");
+              }
+            } catch (err: any) {
+              const msg = err.message || "Gagal verifikasi closing.";
+              setError(msg);
+              toast.error(msg);
+            }
+          });
+        },
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {},
+      },
     });
   };
+
 
   return (
     <>

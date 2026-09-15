@@ -27,14 +27,20 @@ export async function GET(
 
     const download = await FileService.downloadFile(id, user, hasShareAccess);
 
+    const inline = req.nextUrl.searchParams.get("inline") === "true";
+    const disposition = inline
+      ? `inline; filename="${encodeURIComponent(download.filename)}"`
+      : `attachment; filename="${encodeURIComponent(download.filename)}"`;
+
     return new NextResponse(download.stream as any, {
       status: 200,
       headers: {
         "Content-Type": download.mimeType,
         "Content-Length": download.size.toString(),
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(download.filename)}"`,
+        "Content-Disposition": disposition,
       },
     });
+
   } catch (err: any) {
     return new NextResponse(err.message || "File download error", { status: 400 });
   }
