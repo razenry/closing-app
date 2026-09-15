@@ -87,19 +87,19 @@ export function UserFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-4 sm:p-6 animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-100 text-amber-800">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-800 shrink-0">
               {isEditing ? <UserCheck className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
             </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">
+            <div className="min-w-0">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight truncate">
                 {isEditing ? "Edit Data Pengguna" : "Tambah Pengguna & Akun Baru"}
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 truncate">
                 {isEditing
                   ? "Perbarui profil, role, atau cabang tugas"
                   : "Buat kredensial akun baru untuk staf cabang atau staf pusat"}
@@ -109,22 +109,23 @@ export function UserFormModal({
           <button
             onClick={onClose}
             disabled={isPending}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+            aria-label="Tutup modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
+          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2 shrink-0">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs overflow-y-auto pr-1">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
               Nama Lengkap <span className="text-red-500">*</span>
             </label>
             <input
@@ -133,12 +134,12 @@ export function UserFormModal({
               required
               defaultValue={userToEdit?.name || ""}
               placeholder="Contoh: Budi Santoso"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
               Alamat Email (Digunakan untuk Login) <span className="text-red-500">*</span>
             </label>
             <input
@@ -148,7 +149,7 @@ export function UserFormModal({
               disabled={isEditing}
               defaultValue={userToEdit?.email || ""}
               placeholder="Contoh: staff.surabaya@closinglm.id"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs disabled:bg-slate-100 disabled:text-slate-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs disabled:bg-slate-100 disabled:text-slate-500"
             />
             {isEditing && (
               <p className="text-[11px] text-slate-400 mt-1">
@@ -158,14 +159,14 @@ export function UserFormModal({
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
               Role Pengguna <span className="text-red-500">*</span>
             </label>
             <select
               name="role"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value as Role)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs bg-white font-medium"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs bg-white font-medium"
             >
               <option value={Role.STAFF_CABANG}>STAFF CABANG (Input & Upload Dokumen)</option>
               <option value={Role.STAFF_PUSAT}>STAFF PUSAT (Review, Revisi & Verifikasi)</option>
@@ -174,14 +175,14 @@ export function UserFormModal({
 
           {selectedRole === Role.STAFF_CABANG && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
                 Cabang Penugasan <span className="text-red-500">*</span>
               </label>
               <select
                 name="branchId"
                 required
                 defaultValue={userToEdit?.branchId || ""}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs bg-white"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs bg-white"
               >
                 <option value="">-- Pilih Cabang --</option>
                 {branches.map((b) => (
@@ -195,10 +196,10 @@ export function UserFormModal({
 
           {selectedRole === Role.STAFF_PUSAT && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
                 Lingkup Wewenang Cabang
               </label>
-              <p className="text-[11px] text-slate-500 mb-2">
+              <p className="text-[11px] text-slate-500 mb-1.5 leading-relaxed">
                 Kosongkan untuk memberikan akses ke <strong>seluruh cabang</strong> (default). Atau masukkan ID cabang dipisah koma jika dibatasi.
               </p>
               <input
@@ -206,14 +207,14 @@ export function UserFormModal({
                 name="authorizedBranchIds"
                 defaultValue={userToEdit?.authorizedBranchIds || ""}
                 placeholder="Biarkan kosong untuk akses semua cabang"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs"
               />
             </div>
           )}
 
           {!isEditing && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
                 Kata Sandi Awal <span className="text-red-500">*</span>
               </label>
               <input
@@ -221,7 +222,7 @@ export function UserFormModal({
                 name="password"
                 required
                 placeholder="Minimal 6 karakter"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs"
               />
               <p className="text-[11px] text-slate-400 mt-1">
                 Staf dapat mengubah kata sandi ini setelah berhasil login.
@@ -231,13 +232,13 @@ export function UserFormModal({
 
           {isEditing && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
                 Status Akun
               </label>
               <select
                 name="active"
                 defaultValue={userToEdit.active ? "true" : "false"}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs bg-white"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs bg-white"
               >
                 <option value="true">Aktif (Dapat Login ke Sistem)</option>
                 <option value="false">Nonaktif (Akses Diblokir)</option>
@@ -245,19 +246,19 @@ export function UserFormModal({
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
             <button
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer"
+              className="px-4 py-2.5 sm:py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer flex-1 sm:flex-initial text-center"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex-1 sm:flex-initial text-center"
             >
               {isPending ? "Menyimpan..." : isEditing ? "Simpan Perubahan" : "Daftarkan Pengguna"}
             </button>
@@ -314,39 +315,42 @@ export function ResetPasswordModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-100 text-amber-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-4 sm:p-6 animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-800 shrink-0">
               <KeyRound className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">
+            <div className="min-w-0">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight truncate">
                 Reset Kata Sandi
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">{user.name} ({user.email})</p>
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 truncate">
+                {user.name} ({user.email})
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
             disabled={isPending}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+            aria-label="Tutup modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
+          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleReset} className="space-y-4 text-xs">
+        <form onSubmit={handleReset} className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-semibold text-slate-700 mb-1 text-[11px] sm:text-xs">
               Kata Sandi Baru
             </label>
             <input
@@ -355,7 +359,7 @@ export function ResetPasswordModal({
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Masukkan kata sandi baru (min 6 karakter)"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-xs"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm sm:text-xs"
             />
           </div>
 
@@ -364,14 +368,14 @@ export function ResetPasswordModal({
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer"
+              className="px-4 py-2.5 sm:py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer flex-1 sm:flex-initial text-center"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex-1 sm:flex-initial text-center"
             >
               {isPending ? "Mereset..." : "Reset Kata Sandi"}
             </button>

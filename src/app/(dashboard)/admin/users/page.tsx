@@ -48,58 +48,58 @@ export default async function AdminUsersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-slate-500 mb-1.5 flex-wrap">
           <span>Pengaturan & Master Data</span>
           <span>/</span>
           <span className="font-semibold text-slate-700">Master Data Pengguna & Akun</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
-          Manajemen Master Pengguna & Akun
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          Manajemen Pengguna & Akun
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Kelola akun staf cabang dan staf pusat, penugasan cabang, reset kata sandi, serta hak akses login.
+        <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+          Kelola akun staf cabang dan staf pusat, penugasan cabang, reset kata sandi, serta hak akses login sistem.
         </p>
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-slate-500">Total Pengguna</span>
-            <div className="text-2xl font-bold text-slate-900 mt-1">{totalUsers}</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 truncate block">Total Pengguna</span>
+            <div className="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">{totalUsers}</div>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-100 text-slate-700">
-            <Users className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-slate-500">Kantor Pusat</span>
-            <div className="text-2xl font-bold text-indigo-600 mt-1">{staffPusatCount}</div>
-          </div>
-          <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-700">
-            <Shield className="w-5 h-5" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700 shrink-0">
+            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-slate-500">Staff Cabang</span>
-            <div className="text-2xl font-bold text-amber-600 mt-1">{staffCabangCount}</div>
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 truncate block">Kantor Pusat</span>
+            <div className="text-xl sm:text-2xl font-bold text-indigo-600 mt-0.5 sm:mt-1">{staffPusatCount}</div>
           </div>
-          <div className="p-2.5 rounded-xl bg-amber-100 text-amber-700">
-            <Building2 className="w-5 h-5" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-indigo-100 text-indigo-700 shrink-0">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-slate-500">Akun Aktif</span>
-            <div className="text-2xl font-bold text-emerald-600 mt-1">{activeUsersCount}</div>
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 truncate block">Staff Cabang</span>
+            <div className="text-xl sm:text-2xl font-bold text-amber-600 mt-0.5 sm:mt-1">{staffCabangCount}</div>
           </div>
-          <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-700">
-            <UserCheck className="w-5 h-5" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-100 text-amber-700 shrink-0">
+            <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 truncate block">Akun Aktif</span>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5 sm:mt-1">{activeUsersCount}</div>
+          </div>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
+            <UserCheck className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
