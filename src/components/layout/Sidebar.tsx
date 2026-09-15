@@ -3,7 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, PlusCircle, CheckCircle2, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  PlusCircle,
+  ShieldCheck,
+  Building2,
+  Users,
+} from "lucide-react";
 import { AuthUser } from "@/lib/permissions";
 import { Role } from "@prisma/client";
 
@@ -13,6 +20,7 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
+  const isStaffPusat = user.role === Role.STAFF_PUSAT;
 
   const navItems = [
     {
@@ -25,7 +33,9 @@ export function Sidebar({ user }: SidebarProps) {
       href: "/closings",
       label: "Riwayat Closing",
       icon: FileText,
-      active: pathname === "/closings" || (pathname.startsWith("/closings/") && pathname !== "/closings/new"),
+      active:
+        pathname === "/closings" ||
+        (pathname.startsWith("/closings/") && pathname !== "/closings/new"),
     },
     ...(user.role === Role.STAFF_CABANG
       ? [
@@ -37,6 +47,21 @@ export function Sidebar({ user }: SidebarProps) {
           },
         ]
       : []),
+  ];
+
+  const adminNavItems = [
+    {
+      href: "/admin/branches",
+      label: "Master Cabang",
+      icon: Building2,
+      active: pathname.startsWith("/admin/branches"),
+    },
+    {
+      href: "/admin/users",
+      label: "Master Pengguna & Akun",
+      icon: Users,
+      active: pathname.startsWith("/admin/users"),
+    },
   ];
 
   return (
@@ -60,6 +85,34 @@ export function Sidebar({ user }: SidebarProps) {
           );
         })}
       </div>
+
+      {/* Admin Master Data Section (Staff Pusat Only) */}
+      {isStaffPusat && (
+        <div className="mt-6 pt-4 border-t border-slate-100">
+          <div className="px-3 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Pengaturan & Master Data
+          </div>
+          <div className="space-y-1">
+            {adminNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    item.active
+                      ? "bg-indigo-600 text-white font-semibold shadow-xs"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="mt-auto pt-4 border-t border-slate-100 text-xs text-slate-400">
         <div className="flex items-center gap-1.5 mb-1 text-slate-500 font-medium">

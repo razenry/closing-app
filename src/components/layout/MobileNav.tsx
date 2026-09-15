@@ -3,7 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, PlusCircle, KeyRound } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  PlusCircle,
+  KeyRound,
+  Building2,
+  Users,
+} from "lucide-react";
 import { AuthUser } from "@/lib/permissions";
 import { Role } from "@prisma/client";
 import { ChangePasswordModal } from "@/components/auth/ChangePasswordModal";
@@ -17,6 +24,7 @@ export function MobileNav({ user }: MobileNavProps) {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const isStaffCabang = user.role === Role.STAFF_CABANG;
+  const isStaffPusat = user.role === Role.STAFF_PUSAT;
 
   const navItems = [
     {
@@ -29,7 +37,9 @@ export function MobileNav({ user }: MobileNavProps) {
       href: "/closings",
       label: "Closing",
       icon: FileText,
-      active: pathname === "/closings" || (pathname.startsWith("/closings/") && pathname !== "/closings/new"),
+      active:
+        pathname === "/closings" ||
+        (pathname.startsWith("/closings/") && pathname !== "/closings/new"),
     },
     ...(isStaffCabang
       ? [
@@ -40,7 +50,20 @@ export function MobileNav({ user }: MobileNavProps) {
             active: pathname === "/closings/new",
           },
         ]
-      : []),
+      : [
+          {
+            href: "/admin/branches",
+            label: "Cabang",
+            icon: Building2,
+            active: pathname.startsWith("/admin/branches"),
+          },
+          {
+            href: "/admin/users",
+            label: "User",
+            icon: Users,
+            active: pathname.startsWith("/admin/users"),
+          },
+        ]),
   ];
 
   return (
